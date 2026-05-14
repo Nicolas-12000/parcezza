@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { CatalogService, Product } from '../../core/services/catalog.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-catalog',
@@ -14,7 +16,11 @@ export class CatalogComponent implements OnInit {
   loading = true;
   error: string | null = null;
 
-  constructor(private catalogService: CatalogService) {}
+  constructor(
+    private catalogService: CatalogService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.catalogService.getProducts().subscribe({
@@ -27,5 +33,14 @@ export class CatalogComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  addToCart(product: Product) {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    console.log('Adding product to cart:', product);
+    // TODO: Implement cart service logic
   }
 }
