@@ -52,13 +52,14 @@ public class User {
     private String email;
 
     @NotEmpty @Size(min = 4, max = 200)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column(nullable = false)
     private Boolean enabled = true;
 
     @JsonIgnore
-    @Column(nullable = false, length = 255)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -69,38 +70,41 @@ public class User {
     private List<Address> addresses = new ArrayList<>();
 
     @CreatedDate
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
     @LastModifiedDate
+    @Column(name = "updated_at")
     private Instant updatedAt;
 
-    void addRole(Role role) {
+
+    public void addRole(Role role) {
         roles.add(role);
     }
 
-    void removeRole(Role role) {
+    public void removeRole(Role role) {
         roles.remove(role);
     }
 
-    boolean hasRole(String roleName){
+    public boolean hasRole(String roleName){
         return roles.stream().anyMatch(r -> r.getRoleName().equals(roleName));
     }
 
-    void addAddress(Address address) {
+    public void addAddress(Address address) {
         addresses.add(address);
         address.setUser(this);
     }
 
-    void removeAddress(Address address) {
+    public void removeAddress(Address address) {
         addresses.remove(address);
         address.setUser(null);
     }
 
-    Optional<Address> getPrimaryAddress() {
+    public Optional<Address> getPrimaryAddress() {
         return addresses.stream().filter(Address::isPrimary).findFirst();
     }
 
-    void setPasswordHash(String passwordHash) {
+    public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
 

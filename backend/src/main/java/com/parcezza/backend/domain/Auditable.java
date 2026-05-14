@@ -3,6 +3,8 @@ package com.parcezza.backend.domain;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -29,14 +31,14 @@ public class Auditable {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
-    @jakarta.persistence.PrePersist
+    @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();
         if (this.createdAt == null) this.createdAt = now;
         if (this.updatedAt == null) this.updatedAt = now;
     }
 
-    @jakarta.persistence.PreUpdate
+    @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
     }

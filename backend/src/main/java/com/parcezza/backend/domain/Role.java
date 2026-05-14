@@ -22,7 +22,7 @@ public class Role {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "role_name", nullable = false, unique = true)
     private String roleName;
 
     public Role(String roleName) {
