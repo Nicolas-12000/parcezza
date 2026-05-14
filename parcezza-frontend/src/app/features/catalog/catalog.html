@@ -1,0 +1,27 @@
+<div class="catalog-container">
+  <h2 style="margin-bottom: var(--space-xl); text-align: center;">Our Catalog</h2>
+
+  <div *ngIf="loading" class="loading-state" style="text-align: center; padding: var(--space-xl);">
+    <p>Loading products...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state" style="text-align: center; color: var(--color-tertiary); padding: var(--space-xl);">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && !error" class="product-grid">
+    <div *ngFor="let product of products" class="card product-card">
+      <div class="product-image">
+        <img [src]="product.imageUrl || 'assets/placeholder-product.png'" [alt]="product.name">
+      </div>
+      <div class="product-info">
+        <h3 class="product-name">{{ product.name }}</h3>
+        <p class="product-description">{{ product.description }}</p>
+        <div class="product-footer">
+          <span class="product-price">{{ product.price | currency:'USD' }}</span>
+          <button class="btn-primary btn-sm">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

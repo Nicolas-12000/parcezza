@@ -1,15 +1,31 @@
 <div class="auth-container">
   <div class="card auth-card">
-    <h2 style="margin-bottom: var(--space-md); text-align: center;">Welcome Back</h2>
+    <h2 style="margin-bottom: var(--space-md); text-align: center;">Create Account</h2>
     <p style="text-align: center; color: var(--color-secondary); margin-bottom: var(--space-lg);">
-      Please enter your details to sign in.
+      Join us and start shopping today.
     </p>
 
     <div *ngIf="errorMessage" class="error-message" style="margin-bottom: var(--space-md); text-align: center; padding: 8px; border: 1px solid var(--color-tertiary); border-radius: var(--rounded-md);">
       {{ errorMessage }}
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input 
+          type="text" 
+          id="fullName" 
+          formControlName="fullName" 
+          placeholder="John Doe"
+          [ngClass]="{ 'is-invalid': submitted && f['fullName'].errors }"
+        >
+        <div *ngIf="submitted && f['fullName'].errors" class="error-message">
+          <span *ngIf="f['fullName'].errors['required']">Full Name is required</span>
+          <span *ngIf="f['fullName'].errors['minlength']">Name must be at least 4 characters</span>
+          <span *ngIf="f['fullName'].errors['safeTextOnly']">Name contains invalid characters</span>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="email">Email</label>
         <input 
@@ -22,9 +38,7 @@
         <div *ngIf="submitted && f['email'].errors" class="error-message">
           <span *ngIf="f['email'].errors['required']">Email is required</span>
           <span *ngIf="f['email'].errors['email']">Must be a valid email address</span>
-          <span *ngIf="f['email'].errors['maxlength']">Email is too long</span>
           <span *ngIf="f['email'].errors['hasHtmlTags']">Invalid characters detected</span>
-          <span *ngIf="f['email'].errors['whitespaceAround']">Cannot contain leading/trailing spaces</span>
         </div>
       </div>
 
@@ -44,7 +58,11 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-primary" style="width: 100%; margin-top: var(--space-md);">Sign In</button>
+      <button type="submit" class="btn-primary" style="width: 100%; margin-top: var(--space-md);">Register</button>
+
+      <p style="text-align: center; margin-top: var(--space-md); font-size: 0.875rem;">
+        Already have an account? <a routerLink="/login" style="color: var(--color-tertiary); font-weight: 600;">Sign In</a>
+      </p>
     </form>
   </div>
 </div>
