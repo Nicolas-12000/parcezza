@@ -368,6 +368,7 @@ label {
 
 .btn-primary:hover {
   background-color: var(--color-tertiary-hover);
+  color: var(--color-on-tertiary) !important;
   box-shadow: var(--shadow-lg), var(--shadow-glow);
   transform: translateY(-1px);
 }

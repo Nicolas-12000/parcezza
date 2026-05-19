@@ -3,12 +3,11 @@
   <div class="auth-panel">
     <div class="auth-panel__content">
       <div class="auth-panel__brand">
-        <span class="auth-panel__icon">C</span>
         <span class="auth-panel__name">Carmine</span>
       </div>
-      <h2 class="auth-panel__heading">Begin your journey with Carmine.</h2>
+      <h2 class="auth-panel__heading">Comience su viaje con Carmine.</h2>
       <p class="auth-panel__text">
-        Create an account to start shopping, save your favorites, and enjoy an exclusive experience curated for you.
+        Cree una cuenta para comenzar a comprar, guardar sus favoritos y disfrutar de una experiencia exclusiva seleccionada para usted.
       </p>
       <div class="auth-panel__decoration">
         <div class="auth-panel__shape"></div>
@@ -20,8 +19,8 @@
   <!-- Form Panel -->
   <div class="auth-form-panel">
     <div class="auth-form-wrapper animate-fade-in-up">
-      <h2 class="auth-form__title">Create Account</h2>
-      <p class="auth-form__subtitle">Fill in your details to get started.</p>
+      <h2 class="auth-form__title">Crear Cuenta</h2>
+      <p class="auth-form__subtitle">Complete sus datos para comenzar.</p>
 
       @if (errorMessage) {
         <div class="auth-alert animate-fade-in-up">
@@ -34,69 +33,69 @@
 
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
-          <label for="register-fullName">Full Name</label>
+          <label for="register-fullName">Nombre Completo</label>
           <input
             type="text"
             id="register-fullName"
             formControlName="fullName"
-            placeholder="Your full name"
+            placeholder="Su nombre y apellido"
             autocomplete="name"
             [class.is-invalid]="submitted && f['fullName'].errors"
           >
           @if (submitted && f['fullName'].errors) {
             <div class="field-error">
               @if (f['fullName'].errors['required']) {
-                <span>Full name is required</span>
+                <span>El nombre completo es obligatorio</span>
               } @else if (f['fullName'].errors['minlength']) {
-                <span>Name must be at least 4 characters</span>
+                <span>El nombre debe tener al menos 4 caracteres</span>
               } @else if (f['fullName'].errors['unsafeText']) {
-                <span>Name contains invalid characters</span>
+                <span>El nombre contiene caracteres inválidos</span>
               }
             </div>
           }
         </div>
 
         <div class="form-group">
-          <label for="register-email">Email Address</label>
+          <label for="register-email">Correo Electrónico</label>
           <input
             type="email"
             id="register-email"
             formControlName="email"
-            placeholder="you&#64;example.com"
+            placeholder="correo@ejemplo.com"
             autocomplete="email"
             [class.is-invalid]="submitted && f['email'].errors"
           >
           @if (submitted && f['email'].errors) {
             <div class="field-error">
               @if (f['email'].errors['required']) {
-                <span>Email is required</span>
+                <span>El correo electrónico es obligatorio</span>
               } @else if (f['email'].errors['email']) {
-                <span>Please enter a valid email address</span>
+                <span>Por favor introduzca un correo electrónico válido</span>
               } @else if (f['email'].errors['hasHtmlTags']) {
-                <span>Invalid characters detected</span>
+                <span>Se han detectado caracteres inválidos</span>
               }
             </div>
           }
         </div>
 
         <div class="form-group">
-          <label for="register-password">Password</label>
+          <label for="register-password">Contraseña</label>
           <input
             type="password"
             id="register-password"
             formControlName="password"
-            placeholder="Minimum 8 characters"
+            placeholder="Mínimo 8 caracteres"
             autocomplete="new-password"
             [class.is-invalid]="submitted && f['password'].errors"
           >
           @if (submitted && f['password'].errors) {
             <div class="field-error">
               @if (f['password'].errors['required']) {
-                <span>Password is required</span>
+                <span>La contraseña es obligatoria</span>
               } @else if (f['password'].errors['minlength']) {
-                <span>Password must be at least 8 characters</span>
+                <span>La contraseña debe tener al menos 8 caracteres</span>
               } @else if (f['password'].errors['hasHtmlTags']) {
-                <span>Invalid characters detected</span>
+                <span>Se han detectado caracteres inválidos</span>
               }
             </div>
           }
@@ -110,16 +109,16 @@
         >
           @if (isLoading()) {
             <span class="spinner"></span>
-            <span>Creating account...</span>
+            <span>Creando cuenta...</span>
           } @else {
-            <span>Create Account</span>
+            <span>Crear Cuenta</span>
           }
         </button>
       </form>
 
       <p class="auth-form__footer">
-        Already have an account?
-        <a routerLink="/login">Sign in</a>
+        ¿Ya tiene una cuenta?
+        <a routerLink="/login">Inicie sesión</a>
       </p>
     </div>
   </div>

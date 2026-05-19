@@ -35,4 +35,20 @@ export class ProfileService {
   deleteAddress(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/addresses/${id}`);
   }
+
+  registerSeller(request: { companyName: string, contactEmail: string, taxId: string, logoUrl?: string }): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/sellers`, request);
+  }
+
+  getMySeller(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/sellers/me`);
+  }
+
+  listSellers(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/sellers`);
+  }
+
+  updateSellerStatus(id: number, status: string): Observable<any> {
+    return this.http.patch<any>(`${environment.apiUrl}/sellers/${id}/status`, { status });
+  }
 }

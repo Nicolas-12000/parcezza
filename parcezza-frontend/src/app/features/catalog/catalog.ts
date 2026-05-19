@@ -65,7 +65,7 @@ export class CatalogComponent implements OnInit {
         this.loadingMore.set(false);
       },
       error: () => {
-        if (reset) this.error.set('Failed to load catalog. Please try again later.');
+        if (reset) this.error.set('Error al cargar el catálogo. Por favor intenta de nuevo más tarde.');
         this.loading.set(false);
         this.loadingMore.set(false);
       }
@@ -106,11 +106,11 @@ export class CatalogComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.addingToCart.set(null);
-        this.toastService.success(`${product.name} added to cart`);
+        this.toastService.success(`${product.name} agregado al carrito`);
       },
       error: (err) => {
         this.addingToCart.set(null);
-        this.toastService.error(err.error?.message || 'Failed to add to cart');
+        this.toastService.error(err.error?.message || 'Error al agregar al carrito');
       }
     });
   }
@@ -122,9 +122,9 @@ export class CatalogComponent implements OnInit {
   }
 
   getStockLabel(stock: number): string {
-    if (stock === 0) return 'Out of Stock';
-    if (stock <= 5) return `Only ${stock} left`;
-    return 'In Stock';
+    if (stock === 0) return 'Agotado';
+    if (stock <= 5) return `Solo quedan ${stock}`;
+    return 'Disponible';
   }
 
   getProductGradient(index: number): string {

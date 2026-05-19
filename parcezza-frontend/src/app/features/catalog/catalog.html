@@ -2,11 +2,11 @@
   <div class="container">
     <!-- Page Header -->
     <div class="catalog-header animate-fade-in-up">
-      <span class="section-label">Our Collection</span>
-      <h1>Catalog</h1>
+      <span class="section-label">Nuestra Colección</span>
+      <h1>Catálogo</h1>
       <div class="divider divider-center"></div>
       @if (!loading() && !error()) {
-        <p class="catalog-header__count">{{ products().length }} products loaded</p>
+        <p class="catalog-header__count">{{ products().length }} productos cargados</p>
       }
     </div>
 
@@ -19,7 +19,7 @@
           </svg>
           <input
             type="search"
-            placeholder="Search products..."
+            placeholder="Buscar productos..."
             [ngModel]="searchQuery()"
             (ngModelChange)="onSearch($event)"
             class="search-bar__input"
@@ -45,9 +45,9 @@
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <h3>Something went wrong</h3>
+          <h3>Algo salió mal</h3>
           <p>{{ error() }}</p>
-          <button class="btn-primary" (click)="loadProducts(true)">Try Again</button>
+          <button class="btn-primary" (click)="loadProducts(true)">Intentar de nuevo</button>
         </div>
       </div>
     }
@@ -63,13 +63,13 @@
                   <span class="product-card__initial">{{ product.name.charAt(0) }}</span>
                 </div>
                 @if (product.stock > 0 && product.stock <= 5) {
-                  <span class="product-card__badge badge badge-warning">Low Stock</span>
+                  <span class="product-card__badge badge badge-warning">Poco Stock</span>
                 }
                 @if (product.stock === 0) {
-                  <span class="product-card__badge badge badge-danger">Sold Out</span>
+                  <span class="product-card__badge badge badge-danger">Agotado</span>
                 }
                 <div class="product-card__overlay">
-                  <span>View Details</span>
+                  <span>Ver Detalles</span>
                 </div>
               </div>
               <div class="product-card__info">
@@ -81,7 +81,7 @@
                   </span>
                 </div>
                 <h3 class="product-card__name">{{ product.name }}</h3>
-                <p class="product-card__desc">{{ product.description || 'Premium quality product' }}</p>
+                <p class="product-card__desc">{{ product.description || 'Producto de calidad premium' }}</p>
                 <div class="product-card__footer">
                   <span class="product-card__price">{{ product.basePrice | currency: product.currency || 'USD' }}</span>
                   <button
@@ -93,7 +93,7 @@
                     @if (addingToCart() === product.id) {
                       <span class="spinner"></span>
                     } @else {
-                      Add to Cart
+                      Agregar al Carrito
                     }
                   </button>
                 </div>
@@ -109,15 +109,15 @@
         }
       } @else if (searchQuery()) {
         <app-empty-state
-          title="No results found"
-          [message]="'No products match &quot;' + searchQuery() + '&quot;. Try a different search term.'"
+          title="No se encontraron resultados"
+          [message]="'Ningún producto coincide con &quot;' + searchQuery() + '&quot;. Intente con otro término.'"
         />
       } @else {
         <app-empty-state
-          title="No products yet"
-          message="Our team is working on adding amazing products. Check back soon!"
+          title="Aún no hay productos"
+          message="Nuestro equipo está trabajando en agregar productos increíbles. ¡Vuelve pronto!"
         >
-          <a routerLink="/" class="btn-primary">Back to Home</a>
+          <a routerLink="/" class="btn-primary">Volver al Inicio</a>
         </app-empty-state>
       }
     }

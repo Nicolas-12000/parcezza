@@ -36,4 +36,12 @@ export class CatalogService {
   getCatalogById(id: number): Observable<CatalogResponse> {
     return this.http.get<CatalogResponse>(`${this.catalogsUrl}/${id}`);
   }
+
+  createProduct(request: any): Observable<Product> {
+    return this.http.post<Product>(this.productsUrl, request);
+  }
+
+  deleteProduct(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.productsUrl}/${id}`);
+  }
 }

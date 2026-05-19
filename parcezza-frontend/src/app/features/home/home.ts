@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CatalogService } from '../../core/services/catalog.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Product } from '../../core/models/product.model';
 import { CatalogResponse } from '../../core/models/catalog.model';
 import { SkeletonCardComponent } from '../../shared/components/skeleton-card/skeleton-card';
@@ -12,13 +13,18 @@ import { SkeletonCardComponent } from '../../shared/components/skeleton-card/ske
   imports: [CommonModule, RouterLink, SkeletonCardComponent],
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
-})
+}
+)
 export class HomeComponent implements OnInit {
   featuredProducts = signal<Product[]>([]);
   catalogs = signal<CatalogResponse[]>([]);
   loading = signal(true);
+  isAuthenticated = computed(() => this.authService.isAuthenticated());
 
-  constructor(private catalogService: CatalogService) {}
+  constructor(
+    private catalogService: CatalogService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.catalogService.getProducts(0, 6).subscribe({

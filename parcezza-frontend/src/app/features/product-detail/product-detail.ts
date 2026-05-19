@@ -33,7 +33,7 @@ export class ProductDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
-      this.error.set('Invalid product');
+      this.error.set('Producto inválido');
       this.loading.set(false);
       return;
     }
@@ -44,7 +44,7 @@ export class ProductDetailComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Product not found');
+        this.error.set('Producto no encontrado');
         this.loading.set(false);
       }
     });
@@ -79,12 +79,12 @@ export class ProductDetailComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.addingToCart.set(false);
-        this.toastService.success(`${p.name} added to cart`);
+        this.toastService.success(`${p.name} agregado al carrito`);
         this.cartService.open();
       },
       error: (err) => {
         this.addingToCart.set(false);
-        this.toastService.error(err.error?.message || 'Failed to add to cart');
+        this.toastService.error(err.error?.message || 'Error al agregar al carrito');
       }
     });
   }
@@ -96,8 +96,8 @@ export class ProductDetailComponent implements OnInit {
   }
 
   getStockLabel(stock: number): string {
-    if (stock === 0) return 'Out of Stock';
-    if (stock <= 5) return `Only ${stock} left`;
-    return 'In Stock';
+    if (stock === 0) return 'Agotado';
+    if (stock <= 5) return `Solo quedan ${stock}`;
+    return 'Disponible';
   }
 }
