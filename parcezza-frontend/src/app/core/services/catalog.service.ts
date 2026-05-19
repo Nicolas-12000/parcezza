@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Product } from '../models/product.model';
 import { CatalogResponse } from '../models/catalog.model';
+import { PageResponse } from '../models/page.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +15,14 @@ export class CatalogService {
 
   constructor(private http: HttpClient) {}
 
-  getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.productsUrl);
+  getProducts(page: number = 0, size: number = 12, query: string = ''): Observable<PageResponse<Product>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    if (query) {
+      params = params.set('query', query);
+    }
+    return this.http.get<PageResponse<Product>>(this.productsUrl, { params });
   }
 
   getProductById(id: number): Observable<Product> {

@@ -21,9 +21,9 @@ export class HomeComponent implements OnInit {
   constructor(private catalogService: CatalogService) {}
 
   ngOnInit(): void {
-    this.catalogService.getProducts().subscribe({
-      next: (products) => {
-        this.featuredProducts.set(products.filter(p => p.active).slice(0, 6));
+    this.catalogService.getProducts(0, 6).subscribe({
+      next: (response) => {
+        this.featuredProducts.set(response.content.filter(p => p.active));
         this.loading.set(false);
       },
       error: () => {

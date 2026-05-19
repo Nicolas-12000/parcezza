@@ -1,242 +1,99 @@
-# Project Explanation (Detailed)
+# Documentación Técnica Detallada: Proyecto Carmine Commerce
 
-## 1. Goal and main idea
-This backend is a Spring Boot REST API for an ecommerce domain. The goal is to keep the structure simple (KISS), avoid repetition (DRY), and keep responsibilities clear (SOLID). The project separates HTTP concerns, business rules, security, persistence, and the domain model. This allows changes in one area without breaking the rest.
+Esta documentación explica en profundidad la arquitectura, la lógica de negocio y los algoritmos que determinan cómo se calculan y guardan los datos críticos en el sistema.
 
-## 2. Architecture overview
-The code uses a classic layered architecture:
+---
 
-1) API layer (controllers)
-2) Service layer (business rules)
-3) Persistence layer (repositories)
-4) Domain layer (entities)
-5) Security layer (JWT, authentication)
+## 1. Arquitectura General y Stack Tecnológico
 
-The layers only talk downwards. Controllers do not talk to repositories directly, and entities are not exposed as API payloads. Instead, DTOs are used to keep API contracts stable.
+- **Backend (API REST):** Java 21, Spring Boot 3, Spring Security (JWT), Spring Data JPA, PostgreSQL.
+- **Frontend (SPA):** Angular 21 (Standalone Components), TypeScript, SCSS.
 
-## 3. Domain model and why it is designed like this
-The domain entities represent the core ecommerce concepts:
+El flujo de datos siempre es **Unidireccional**:
+`Cliente -> Controller -> Service (Interface -> Impl) -> Repository -> Base de Datos`
 
-- User: the account holder. It has email, fullName, enabled, passwordHash, roles, and addresses.
-- Role: the authorization role for the user (ROLE_USER, ROLE_SELLER, ROLE_ADMIN).
-- Address: user shipping or billing data. One user can have many addresses.
-- Seller: a profile for users that want to sell. A seller is owned by one user.
-- Product: a product that belongs to a seller.
-- ProductVariant: a variant of a product (size, color) with its own sku, stock, and price override.
-- VariantAttribute: key/value attributes for each variant.
-- Catalog: a logical grouping of products.
-- Cart: a user cart that holds the current intended purchase.
-- CartItem: the line inside a cart with product/variant, quantity, unit price, and totals.
-- Order: a confirmed snapshot of a cart, with totals and status.
-- OrderItem: line items for an order.
-- Payment: a payment attempt with status (success/failed) and card last4.
-- Shipment: delivery data and status for an order.
-- ReturnRequest: tracks a return/refund request for an order.
-- InventoryMovement: records stock reservations, releases, sales, and refunds.
-- Auditable: shared fields for createdBy/createdAt/updatedAt, inherited by Product and Seller.
+---
 
-Why this shape?
-- User to Role is many-to-many because a user can have several roles.
-- User to Address is one-to-many because a user can have multiple addresses.
-- Seller to User is many-to-one (owner) because a user can have a seller profile.
-- Product to Seller is many-to-one because each product belongs to one seller.
-- Product to ProductVariant is one-to-many because each product can have many variants.
-- ProductVariant to VariantAttribute is one-to-many because each variant can have many attributes.
-- Catalog to Product is many-to-many because a product can appear in many catalogs and a catalog contains many products.
-- User to Cart is one-to-one because each user keeps one active cart.
-- Cart to CartItem is one-to-many because a cart has multiple lines.
-- Order to OrderItem is one-to-many because a confirmed order has multiple lines.
-- Order to Shipment is one-to-one because each order has a shipment lifecycle.
-- Order to Payment is one-to-many because multiple payment attempts can exist.
-- Order to ReturnRequest is one-to-one because the current design allows one active return process per order.
-- Product/variant to InventoryMovement is one-to-many because we want a trace of every stock change.
+## 2. Explicación Profunda de la Lógica de Negocio (Backend)
 
-## 4. POO (OOP) choices and where they are applied
-This project uses OOP in a justified way:
+Aquí es donde ocurren los cálculos reales. No dependemos de la base de datos para calcular totales ni precios; todo se hace en memoria dentro de transacciones de Java para garantizar consistencia.
 
-- Entities model the real business concepts and hold state.
-- Interfaces define service contracts (AuthService, ProductService, etc.).
-- Implementations (AuthServiceImpl, ProductServiceImpl) contain the actual logic.
-- This allows dependency inversion: controllers depend on interfaces, not concrete classes.
-- Polymorphism is used via service interfaces: any implementation can replace another without changing controllers.
-- Abstract base class Auditable provides common audit fields. It avoids repetition in Product and Seller.
-- Card validation is behind a CardValidator interface, with LuhnCardValidator implementation. This is an intentional, minimal use of polymorphism to allow different validation rules without changing the PaymentService.
+### 2.1. Lógica del Carrito y Reserva de Inventario (`CartServiceImpl`)
+Cuando un usuario añade un producto al carrito, no solo se guarda un registro; el sistema aparta físicamente el inventario para que nadie más lo pueda comprar.
 
-This is minimal but effective. We avoid complex inheritance trees or unnecessary patterns.
+1. **Resolución de Precios:** El sistema evalúa si el usuario escogió una "Variante" (ej. Talla XL) o el producto base. 
+   ```java
+   // En CartServiceImpl.java
+   private BigDecimal resolveUnitPrice(Product product, ProductVariant variant) {
+       // Si hay una variante con un precio específico, lo usa. Si no, usa el precio base.
+       return variant != null && variant.getPriceOverride() != null
+           ? variant.getPriceOverride()
+           : product.getBasePrice();
+   }
+   ```
+2. **Cálculo del Total de la Línea:** Multiplica el precio resuelto por la cantidad: `unitPrice.multiply(BigDecimal.valueOf(request.quantity()))`.
+3. **Timer de Expiración (Reserva):** El sistema añade exactamente 30 minutos a la hora actual (`Instant.now().plus(Duration.ofMinutes(30))`) y lo guarda en el campo `reservedUntil`.
+4. **Impacto en Inventario:** Llama a `inventoryService.reserve()`. Este servicio busca el producto en la base de datos, hace `stock = stock - cantidad`, y crea un registro `InventoryMovement` de tipo `RESERVE` atado al ID del Carrito. 
 
-## 5. API layer (controllers)
-Controllers are small and only handle HTTP details:
-- Map endpoints and HTTP verbs.
-- Validate input via annotations (@Valid).
-- Delegate to services.
-- Return DTOs or simple responses.
+*¿Qué pasa si pasan los 30 minutos?* Cada vez que el usuario consulta su carrito, el método `expireReservations(cart)` revisa si `reservedUntil` ya pasó. Si es así, elimina el ítem del carrito y llama a `inventoryService.release()`, devolviendo el stock a la tienda.
 
-Key controllers:
-- AuthController: register and login.
-- ProductController: CRUD products.
-- ProductVariantController: CRUD variants under a product.
-- SellerController: seller registration and admin status updates.
-- CatalogController: CRUD catalogs and add/remove product from catalog.
-- ProfileController: current user profile and addresses.
-- CartController: cart operations (add, update, remove, clear).
-- OrderController: checkout and order queries.
-- PaymentController: simulated payment confirmation.
-- ShipmentController: shipment status queries and admin updates.
+### 2.2. Lógica de Checkout (`OrderServiceImpl`)
+Convertir un carrito temporal en una orden firme e inmutable.
 
-Controllers do not implement business rules. That is the service layer job.
+1. **Validación de Expiración:** Antes de hacer nada, el sistema recorre todo el carrito. Si *al menos un ítem* expiró mientras el usuario ponía su dirección, cancela todo el proceso y le avisa al usuario (`throw new BadRequestException`).
+2. **"Congelación" de Precios:** La orden no hace referencia a los precios actuales del catálogo (porque los precios pueden cambiar mañana). El servicio itera sobre el `Cart`, crea objetos `OrderItem` y les copia el precio exacto que el usuario tenía en su carrito.
+3. **Cálculo del Total:** A la vez que itera, va sumando los totales de las líneas en una variable `BigDecimal total`, y finalmente se lo asigna a `order.setTotalAmount(total)`.
+4. **Consumo Definitivo de Inventario:** Llama a `inventoryService.consume()`. Esto no resta stock (porque ya se restó en el paso del Carrito), sino que toma el registro de "Reserva" en la tabla `InventoryMovement` y lo cambia permanentemente a tipo `CONSUME`.
+5. **Creación del Envío:** Automáticamente genera un objeto `Shipment` con estado `PENDING` y genera un código de rastreo aleatorio (`TRK-` + UUID). Finalmente, vacía el carrito borrando sus ítems. Todo ocurre en una sola `@Transactional`.
 
-## 6. DTOs and validation
-DTOs define the request/response shapes. This avoids leaking entity internals.
+### 2.3. Lógica de Pagos Simulada (`PaymentServiceImpl`)
+Cuando la orden ya está en estado `CREATED`, el usuario ingresa su tarjeta.
+1. **Validación (Algoritmo de Luhn):** Pasamos el número por un `CardValidator` (implementa Luhn para chequear que la tarjeta sea matemáticamente válida). Revisa que el CVV tenga 3 o 4 dígitos y que la fecha de expiración sea futura.
+2. **Cambio de Estado:** Si falla, crea un registro de pago `FAILED`. Si es exitoso, crea el registro `SUCCESS` guardando solo los últimos 4 dígitos (`last4`) y actualiza el estado de la Orden a `PAID`.
 
-Examples:
-- ProductUpsertRequest has sku, name, description, basePrice, stock, currency, active.
-- ProductResponse returns id, sku, name, etc.
-- SellerRequest is used for seller registration.
-- ProfileUpdateRequest limits update to fullName only.
-- CartItemRequest defines product/variant and quantity.
-- PaymentRequest defines card details for the simulation.
+---
 
-Validation uses standard annotations:
-- @NotBlank, @Size, @PositiveOrZero, @Email
+## 3. Explicación de la Lógica del Frontend (Angular)
 
-This ensures invalid data is rejected early with a 400 response.
+El frontend está diseñado para no bloquearse y enviar datos limpios al servidor.
 
-## 7. Service layer (business rules)
-Services contain rules and state changes. This is where most decisions live.
+### 3.1. Protección y Lógica de Formularios Reactivos
+El cálculo de qué es válido y qué no se hace en tiempo real mientras el usuario teclea.
+Usamos `SecurityValidators`, una clase que inyecta código directamente en el ciclo de validación de Angular.
+```typescript
+static noHtmlTags(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    // Si el texto contiene "<", ">" o "&", retorna un error { 'htmlTags': true }
+    // Esto desactiva automáticamente el botón de "Pagar" o "Registrarse" en el HTML.
+    const hasHtml = /[<>&]/.test(control.value);
+    return hasHtml ? { 'htmlTags': true } : null;
+  };
+}
+```
 
-### AuthService
-- register: checks if email exists, creates user, assigns ROLE_USER, hashes password, returns JWT.
-- login: uses AuthenticationManager to validate credentials, returns JWT.
+### 3.2. Scroll Infinito y Paginación (Carga por Tandas)
+Para no saturar la memoria RAM (PC) del usuario al cargar el catálogo:
+1. El componente define un "Lote" de tamaño fijo (`pageSize = 12`) y una "Página actual" (`page = signal(0)`).
+2. Un `@HostListener('window:scroll')` calcula continuamente: `(posición del scroll) + (altura de la ventana)`.
+3. Si ese número es mayor a la altura total de la página menos 400 píxeles, dispara la lógica matemática: `page = page + 1`.
+4. Angular manda un `GET` a Spring Boot con los nuevos parámetros (`?page=1`). 
+5. Cuando la data llega, Angular **no** reemplaza el arreglo viejo. Usa el operador de propagación (`...`) para fusionar la vieja data con la nueva: `products.update(current => [...current, ...newItems])`. Esto hace que el catálogo crezca fluidamente hacia abajo.
 
-### SellerService
-- register: creates a seller for the current user. It starts as PENDING.
-- updateStatus (admin): changes seller status. When approved, user gets ROLE_SELLER.
+### 3.3. Manejo de Estado con Signals
+En lugar de depender del Backend para sumar los números en la interfaz, el `CartService` del frontend recalcula localmente el `totalCount` de ítems en el carrito usando la directiva matemática de Signals:
+```typescript
+cartItemCount = computed(() => {
+  const currentCart = this.cart(); // Si el carrito cambia, esto se recalcula solo
+  return currentCart ? currentCart.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+});
+```
+Ese número se enlaza directamente a la "Burbuja roja" del carrito en el menú superior, haciendo que brinque y se actualice al instante sin peticiones HTTP extras.
 
-### ProductService
-- create: only for approved sellers, unique SKU enforced, product tied to seller.
-- update: only owner can update, SKU uniqueness enforced.
-- delete: only owner can delete.
+---
 
-### ProductVariantService
-- create/update/delete: only owner can change variants on their product.
-- list: public access for a product.
+## 4. ¿Cómo Modificar o Añadir Lógica Compleja?
 
-### CatalogService
-- CRUD for catalogs (admin).
-- addProduct/removeProduct: maintain many-to-many relation.
-
-### ProfileService
-- get/update profile for current user.
-- manage addresses with primary address handling.
-
-### CartService
-- add/update/remove/clear: manages cart items and reserves stock immediately when adding to the cart.
-- stock reservation uses product or variant stock depending on the item.
-
-### OrderService
-- checkout: creates order and order items from cart snapshot.
-- creates a shipment in PENDING status with a tracking code.
-
-### PaymentService
-- confirm: validates card with Luhn + expiry + CVV.
-- stores a payment attempt and sets status to SUCCESS or FAILED.
-- on success, the order moves to PAID.
-- refund: creates a refund payment record, sets the order to REFUNDED, and restores inventory.
-
-### ShipmentService
-- updateStatus: admin updates shipment status and tracking code.
-- getByOrder: customer can see shipment for their own order.
-
-### InventoryService
-- reserve: reduces available stock when an item is placed in the cart.
-- release: returns reserved stock when a cart item is removed or expires.
-- consume: records final sale when checkout confirms the order.
-- refund: restores stock when an order is refunded.
-
-### ReturnService
-- requestReturn: customer requests a return only after delivery.
-- updateStatus: admin advances the return workflow using explicit transitions.
-
-Transactions are used in write operations so data changes stay consistent.
-
-## 8. Security and authorization
-Security is JWT based and stateless.
-
-Key components:
-- JwtAuthenticationFilter: extracts Bearer token, validates, builds security context.
-- JwtService: token generation and validation.
-- UserDetailsServiceImpl: loads user details by email.
-- CurrentUserService: provides the authenticated user for services.
-
-Authorization rules:
-- /api/auth/** is public.
-- GET /api/products/** and GET /api/catalogs/** are public.
-- Everything else requires authentication.
-- Method-level checks using @PreAuthorize enforce roles:
-  - Seller endpoints for product create/update/delete require ROLE_SELLER.
-  - Admin endpoints for seller status and catalog management require ROLE_ADMIN.
-  - Admin shipment updates require ROLE_ADMIN.
-
-This keeps security easy to understand while still enforcing business rules.
-
-## 9. Persistence and database
-Spring Data JPA repositories handle persistence. Each repository is a simple interface with derived queries.
-
-Flyway manages schema via migration files. The schema is explicit and reproducible.
-
-Important tables:
-- users, roles, user_roles
-- sellers, products, product_variants, variant_attributes
-- catalogs, catalog_products
-- addresses
-- carts, cart_items
-- orders, order_items
-- payments
-- shipments
-- inventory_movements
-- return_requests
-
-## 10. Error handling
-Exceptions are mapped to HTTP responses:
-- DuplicateResourceException -> 409
-- ResourceNotFoundException -> 404
-- BadRequestException -> 400
-- UnauthorizedException -> 401
-- AccessDeniedException -> 403
-
-This keeps the API consistent and predictable.
-
-## 11. KISS and DRY in practice
-- KISS: Each class has a narrow role. No heavy patterns or frameworks beyond Spring.
-- DRY: shared logic is centralized (CurrentUserService, Auditable, DTOs).
-- Services reuse repository queries and avoid repeating ownership checks.
-
-## 12. How a request flows end to end (example)
-Example: checkout and simulated payment
-
-1) Client adds items to cart. Stock is reserved immediately.
-2) Client sends POST /api/orders/checkout.
-3) OrderService creates the order and a shipment record.
-4) Client sends POST /api/payments/confirm with card details.
-5) PaymentService validates card using Luhn + expiry + CVV.
-6) If valid, payment is SUCCESS and order becomes PAID.
-7) If the order is delivered later, the customer can request a return, and the admin can move it through approval, receipt, and refund.
-
-### Reservation expiry
-Cart items carry a `reservedUntil` timestamp. If the user keeps items too long, they expire, the reservation is released, and the cart line is removed. This is a simple reservation policy that prevents stock from being blocked forever.
-
-Each step has a clear responsibility and no layer breaks boundaries.
-
-## 13. What to change safely
-- Add new endpoints by creating DTOs + service method + controller method.
-- Add new fields by updating entity + migration + DTOs.
-- Add new roles by adding Role row and using @PreAuthorize.
-
-## 14. Why this is a good balance
-The system is simple enough for a small team but solid enough to grow:
-- Clear boundaries.
-- Minimal but useful OOP.
-- Security and persistence are explicit.
-- Tests can be added per service or controller.
-
-This is what "simple but correct" looks like in a real backend.
+Si vas a añadir un descuento o código promocional en el futuro, no debes tocar el Frontend ni la Entidad directamente. La arquitectura dicta que:
+1. Creas un `DiscountService` (Backend).
+2. Modificas la función `OrderServiceImpl.checkout()`. Justo antes de asignar `order.setTotalAmount(total)`, llamas a tu `DiscountService` para restar el porcentaje matemático del `total`.
+3. Todo debe ocurrir dentro del bloque `@Transactional` para asegurar que, si el cálculo falla, se revierta todo el proceso (incluyendo el envío y el consumo de stock).

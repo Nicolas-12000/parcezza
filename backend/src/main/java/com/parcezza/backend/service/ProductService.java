@@ -4,10 +4,13 @@ import com.parcezza.backend.dto.product.ProductResponse;
 import com.parcezza.backend.dto.product.ProductUpsertRequest;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface ProductService {
     ProductResponse create(ProductUpsertRequest request);
     ProductResponse update(Long productId, ProductUpsertRequest request);
     ProductResponse getById(Long productId);
-    List<ProductResponse> listAll();
+    Page<ProductResponse> listAll(String query, Pageable pageable);
     void delete(Long productId);
 }

@@ -14,6 +14,8 @@ import com.parcezza.backend.security.CurrentUserService;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,10 +79,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> listAll() {
-        return productRepository.findAll().stream()
-            .map(this::toResponse)
-            .collect(Collectors.toList());
+    public Page<ProductResponse> listAll(String query, Pageable pageable) {
+        Page<Product> page;
+        if (query != null && !query.trim().isEmpty()) {
+            page = productRepository.searchProducts(query, pageable);
+        } else {
+            page = productRepository.findAll(pageable);
+        }
+        return page.map(this::toResponse);
     }
 
     @Override

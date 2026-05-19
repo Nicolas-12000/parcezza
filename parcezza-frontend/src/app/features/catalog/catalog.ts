@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -19,22 +19,16 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
   styleUrls: ['./catalog.scss']
 })
 export class CatalogComponent implements OnInit {
-  allProducts = signal<Product[]>([]);
+  products = signal<Product[]>([]);
   searchQuery = signal('');
   loading = signal(true);
   error = signal<string | null>(null);
   addingToCart = signal<number | null>(null);
 
-  filteredProducts = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    const products = this.allProducts();
-    if (!query) return products;
-    return products.filter(p =>
-      p.name.toLowerCase().includes(query) ||
-      p.description?.toLowerCase().includes(query) ||
-      p.sku.toLowerCase().includes(query)
-    );
-  });
+  page = signal(0);
+  pageSize = 12;
+  hasMore = signal(true);
+  loadingMore = signal(false);
 
   constructor(
     private catalogService: CatalogService,
@@ -45,20 +39,55 @@ export class CatalogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.catalogService.getProducts().subscribe({
-      next: (data) => {
-        this.allProducts.set(data.filter(p => p.active));
+    this.loadProducts(true);
+  }
+
+  loadProducts(reset: boolean = false): void {
+    if (reset) {
+      this.page.set(0);
+      this.products.set([]);
+      this.hasMore.set(true);
+      this.loading.set(true);
+    } else {
+      this.loadingMore.set(true);
+    }
+
+    this.catalogService.getProducts(this.page(), this.pageSize, this.searchQuery()).subscribe({
+      next: (response) => {
+        const newItems = response.content.filter(p => p.active);
+        if (reset) {
+          this.products.set(newItems);
+        } else {
+          this.products.update(current => [...current, ...newItems]);
+        }
+        this.hasMore.set(!response.last);
         this.loading.set(false);
+        this.loadingMore.set(false);
       },
       error: () => {
-        this.error.set('Failed to load catalog. Please try again later.');
+        if (reset) this.error.set('Failed to load catalog. Please try again later.');
         this.loading.set(false);
+        this.loadingMore.set(false);
       }
     });
   }
 
   onSearch(value: string): void {
     this.searchQuery.set(value);
+    this.loadProducts(true);
+  }
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) return;
+
+    const pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
+    const max = document.documentElement.scrollHeight;
+
+    if (pos > max - 400) {
+      this.page.update(p => p + 1);
+      this.loadProducts();
+    }
   }
 
   addToCart(product: Product, event: Event): void {

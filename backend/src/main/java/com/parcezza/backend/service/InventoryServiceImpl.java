@@ -61,25 +61,22 @@ public class InventoryServiceImpl implements InventoryService {
             throw new BadRequestException("Quantity must be positive");
         }
 
+        int amount = direction * quantity;
+        int updatedRows;
+
         if (variant != null) {
-            int available = variant.getStock() == null ? 0 : variant.getStock();
-            int updated = available + (direction * quantity);
-            if (updated < 0) {
-                throw new BadRequestException("Not enough variant stock");
+            updatedRows = variantRepository.adjustStockAtomically(variant.getId(), amount);
+            if (updatedRows == 0) {
+                throw new BadRequestException("Not enough variant stock or variant not found");
             }
-            variant.setStock(updated);
-            variantRepository.save(variant);
             recordMovement(product, variant, quantity, type, referenceType, referenceId);
             return;
         }
 
-        int available = product.getStock() == null ? 0 : product.getStock();
-        int updated = available + (direction * quantity);
-        if (updated < 0) {
-            throw new BadRequestException("Not enough product stock");
+        updatedRows = productRepository.adjustStockAtomically(product.getId(), amount);
+        if (updatedRows == 0) {
+            throw new BadRequestException("Not enough product stock or product not found");
         }
-        product.setStock(updated);
-        productRepository.save(product);
         recordMovement(product, null, quantity, type, referenceType, referenceId);
     }
 

@@ -40,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse confirm(PaymentRequest request) {
-        Order order = orderRepository.findById(request.orderId())
+        Order order = orderRepository.findByIdWithPessimisticLock(request.orderId())
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (!Objects.equals(order.getUser().getId(), currentUserService.getCurrentUser().getId())) {

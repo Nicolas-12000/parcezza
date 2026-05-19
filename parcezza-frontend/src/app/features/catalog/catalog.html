@@ -6,7 +6,7 @@
       <h1>Catalog</h1>
       <div class="divider divider-center"></div>
       @if (!loading() && !error()) {
-        <p class="catalog-header__count">{{ filteredProducts().length }} products</p>
+        <p class="catalog-header__count">{{ products().length }} products loaded</p>
       }
     </div>
 
@@ -47,16 +47,16 @@
           </svg>
           <h3>Something went wrong</h3>
           <p>{{ error() }}</p>
-          <button class="btn-primary" (click)="retry()">Try Again</button>
+          <button class="btn-primary" (click)="loadProducts(true)">Try Again</button>
         </div>
       </div>
     }
 
     <!-- Product Grid -->
     @if (!loading() && !error()) {
-      @if (filteredProducts().length > 0) {
+      @if (products().length > 0) {
         <div class="product-grid">
-          @for (product of filteredProducts(); track product.id; let i = $index) {
+          @for (product of products(); track product.id; let i = $index) {
             <a [routerLink]="['/product', product.id]" class="product-card animate-fade-in-up" [class]="'stagger-' + ((i % 8) + 1)">
               <div class="product-card__image" [style.background]="getProductGradient(i)">
                 <div class="product-card__image-content">
@@ -101,6 +101,12 @@
             </a>
           }
         </div>
+
+        @if (loadingMore()) {
+          <div style="text-align: center; padding: 2rem 0;">
+            <div class="spinner" style="width: 32px; height: 32px; border-width: 3px; border-top-color: var(--color-primary);"></div>
+          </div>
+        }
       } @else if (searchQuery()) {
         <app-empty-state
           title="No results found"
