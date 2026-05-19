@@ -1,27 +1,119 @@
-<div class="catalog-container">
-  <h2 style="margin-bottom: var(--space-xl); text-align: center;">Our Catalog</h2>
+<div class="catalog-page">
+  <div class="container">
+    <!-- Page Header -->
+    <div class="catalog-header animate-fade-in-up">
+      <span class="section-label">Our Collection</span>
+      <h1>Catalog</h1>
+      <div class="divider divider-center"></div>
+      @if (!loading() && !error()) {
+        <p class="catalog-header__count">{{ filteredProducts().length }} products</p>
+      }
+    </div>
 
-  <div *ngIf="loading" class="loading-state" style="text-align: center; padding: var(--space-xl);">
-    <p>Loading products...</p>
-  </div>
-
-  <div *ngIf="error" class="error-state" style="text-align: center; color: var(--color-tertiary); padding: var(--space-xl);">
-    <p>{{ error }}</p>
-  </div>
-
-  <div *ngIf="!loading && !error" class="product-grid">
-    <div *ngFor="let product of products" class="card product-card">
-      <div class="product-image">
-        <img [src]="product.imageUrl || 'assets/placeholder-product.png'" [alt]="product.name">
-      </div>
-      <div class="product-info">
-        <h3 class="product-name">{{ product.name }}</h3>
-        <p class="product-description">{{ product.description }}</p>
-        <div class="product-footer">
-          <span class="product-price">{{ product.price | currency:'USD' }}</span>
-          <button class="btn-primary btn-sm" (click)="addToCart(product)">Add to Cart</button>
+    <!-- Search Bar -->
+    @if (!error()) {
+      <div class="search-bar animate-fade-in-up stagger-2">
+        <div class="search-bar__inner">
+          <svg class="search-bar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="search"
+            placeholder="Search products..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="onSearch($event)"
+            class="search-bar__input"
+            id="catalog-search"
+          >
         </div>
       </div>
-    </div>
+    }
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="product-grid">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <app-skeleton-card [delay]="i * 80" />
+        }
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="catalog-error animate-fade-in-up">
+        <div class="catalog-error__card card">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <h3>Something went wrong</h3>
+          <p>{{ error() }}</p>
+          <button class="btn-primary" (click)="retry()">Try Again</button>
+        </div>
+      </div>
+    }
+
+    <!-- Product Grid -->
+    @if (!loading() && !error()) {
+      @if (filteredProducts().length > 0) {
+        <div class="product-grid">
+          @for (product of filteredProducts(); track product.id; let i = $index) {
+            <a [routerLink]="['/product', product.id]" class="product-card animate-fade-in-up" [class]="'stagger-' + ((i % 8) + 1)">
+              <div class="product-card__image" [style.background]="getProductGradient(i)">
+                <div class="product-card__image-content">
+                  <span class="product-card__initial">{{ product.name.charAt(0) }}</span>
+                </div>
+                @if (product.stock > 0 && product.stock <= 5) {
+                  <span class="product-card__badge badge badge-warning">Low Stock</span>
+                }
+                @if (product.stock === 0) {
+                  <span class="product-card__badge badge badge-danger">Sold Out</span>
+                }
+                <div class="product-card__overlay">
+                  <span>View Details</span>
+                </div>
+              </div>
+              <div class="product-card__info">
+                <div class="product-card__meta">
+                  <span class="product-card__sku">{{ product.sku }}</span>
+                  <span class="stock-indicator">
+                    <span class="stock-dot" [class]="getStockStatus(product.stock)"></span>
+                    {{ getStockLabel(product.stock) }}
+                  </span>
+                </div>
+                <h3 class="product-card__name">{{ product.name }}</h3>
+                <p class="product-card__desc">{{ product.description || 'Premium quality product' }}</p>
+                <div class="product-card__footer">
+                  <span class="product-card__price">{{ product.basePrice | currency: product.currency || 'USD' }}</span>
+                  <button
+                    class="btn-primary btn-sm"
+                    [disabled]="product.stock === 0 || addingToCart() === product.id"
+                    (click)="addToCart(product, $event)"
+                    [attr.id]="'add-to-cart-' + product.id"
+                  >
+                    @if (addingToCart() === product.id) {
+                      <span class="spinner"></span>
+                    } @else {
+                      Add to Cart
+                    }
+                  </button>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      } @else if (searchQuery()) {
+        <app-empty-state
+          title="No results found"
+          [message]="'No products match &quot;' + searchQuery() + '&quot;. Try a different search term.'"
+        />
+      } @else {
+        <app-empty-state
+          title="No products yet"
+          message="Our team is working on adding amazing products. Check back soon!"
+        >
+          <a routerLink="/" class="btn-primary">Back to Home</a>
+        </app-empty-state>
+      }
+    }
   </div>
 </div>

@@ -1,0 +1,215 @@
+<div class="checkout-page">
+  <div class="container">
+    <h1 class="checkout-title animate-fade-in-up">Checkout</h1>
+
+    <!-- Step Indicator -->
+    @if (currentStep() !== 'success') {
+      <div class="steps animate-fade-in-up stagger-2">
+        <div class="step" [class.step--active]="stepIndex() >= 0" [class.step--done]="stepIndex() > 0">
+          <span class="step__number">1</span>
+          <span class="step__label">Address</span>
+        </div>
+        <div class="step__connector" [class.step__connector--active]="stepIndex() > 0"></div>
+        <div class="step" [class.step--active]="stepIndex() >= 1" [class.step--done]="stepIndex() > 1">
+          <span class="step__number">2</span>
+          <span class="step__label">Review</span>
+        </div>
+        <div class="step__connector" [class.step__connector--active]="stepIndex() > 1"></div>
+        <div class="step" [class.step--active]="stepIndex() >= 2">
+          <span class="step__number">3</span>
+          <span class="step__label">Payment</span>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 1: Address -->
+    @if (currentStep() === 'address') {
+      <div class="checkout-step animate-fade-in-up">
+        <h2>Shipping Address</h2>
+        <p class="checkout-step__desc">Select where you want your order delivered.</p>
+
+        @if (loadingAddresses()) {
+          <div class="address-loading">
+            @for (i of [1,2]; track i) {
+              <div class="skeleton-card" style="height: 80px;"><div class="skeleton" style="height: 100%; border-radius: var(--rounded-md);"></div></div>
+            }
+          </div>
+        } @else {
+          @if (addresses().length > 0) {
+            <div class="address-list">
+              @for (addr of addresses(); track addr.id) {
+                <div
+                  class="address-item"
+                  [class.address-item--selected]="selectedAddressId() === addr.id"
+                  (click)="selectAddress(addr.id)"
+                >
+                  <div class="address-item__radio">
+                    <div class="radio" [class.radio--checked]="selectedAddressId() === addr.id"></div>
+                  </div>
+                  <div class="address-item__content">
+                    <p class="address-item__line">{{ addr.line1 }}</p>
+                    @if (addr.line2) { <p class="address-item__line address-item__line--secondary">{{ addr.line2 }}</p> }
+                    <p class="address-item__line address-item__line--secondary">
+                      {{ addr.administrativeArea }}, {{ addr.postalCode }} - {{ addr.country }}
+                    </p>
+                  </div>
+                  @if (addr.primary) {
+                    <span class="badge badge-neutral">Primary</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <button class="btn-ghost add-address-btn" (click)="toggleAddressForm()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            {{ showAddressForm() ? 'Cancel' : 'Add New Address' }}
+          </button>
+
+          @if (showAddressForm()) {
+            <div class="new-address-form animate-fade-in-up" [formGroup]="addressForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Address Line 1</label>
+                  <input type="text" formControlName="line1" placeholder="Street address">
+                </div>
+                <div class="form-group">
+                  <label>Address Line 2</label>
+                  <input type="text" formControlName="line2" placeholder="Apt, suite (optional)">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>City / State</label>
+                  <input type="text" formControlName="administrativeArea" placeholder="City, State">
+                </div>
+                <div class="form-group">
+                  <label>Postal Code</label>
+                  <input type="text" formControlName="postalCode" placeholder="10001">
+                </div>
+              </div>
+              <div class="form-group" style="max-width: 50%;">
+                <label>Country</label>
+                <input type="text" formControlName="country" placeholder="United States">
+              </div>
+              <button class="btn-primary" (click)="saveNewAddress()" [disabled]="isLoading()">
+                @if (isLoading()) { <span class="spinner"></span> }
+                Save Address
+              </button>
+            </div>
+          }
+        }
+
+        <div class="checkout-step__actions">
+          <a routerLink="/catalog" class="btn-secondary">Continue Shopping</a>
+          <button class="btn-primary" (click)="goToReview()" [disabled]="!selectedAddressId()">Continue to Review</button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: Review -->
+    @if (currentStep() === 'review') {
+      <div class="checkout-step animate-fade-in-up">
+        <h2>Order Review</h2>
+        <p class="checkout-step__desc">Review your items before placing the order.</p>
+
+        <div class="review-items">
+          @for (item of cartItems(); track item.id) {
+            <div class="review-item">
+              <div class="review-item__info">
+                <p class="review-item__name">Product #{{ item.productId }}</p>
+                <p class="review-item__qty">Quantity: {{ item.quantity }}</p>
+              </div>
+              <p class="review-item__price">{{ item.lineTotal | currency: item.currency }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="review-total">
+          <span>Order Total</span>
+          <strong>{{ cartTotal() | currency: cartCurrency() }}</strong>
+        </div>
+
+        <div class="checkout-step__actions">
+          <button class="btn-secondary" (click)="goBack()">Back</button>
+          <button class="btn-primary" (click)="placeOrder()" [disabled]="isLoading()">
+            @if (isLoading()) { <span class="spinner"></span> }
+            Place Order
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 3: Payment -->
+    @if (currentStep() === 'payment') {
+      <div class="checkout-step animate-fade-in-up">
+        <h2>Payment</h2>
+        <p class="checkout-step__desc">Enter your card details to complete the purchase.</p>
+
+        <div class="payment-form card" [formGroup]="paymentForm">
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" formControlName="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19"
+              [class.is-invalid]="getPaymentControl('cardNumber')?.touched && getPaymentControl('cardNumber')?.invalid">
+            @if (getPaymentControl('cardNumber')?.touched && getPaymentControl('cardNumber')?.invalid) {
+              <div class="field-error">Enter a valid card number (13-19 digits)</div>
+            }
+          </div>
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" formControlName="cardHolder" placeholder="Name on card"
+              [class.is-invalid]="getPaymentControl('cardHolder')?.touched && getPaymentControl('cardHolder')?.invalid">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Exp. Month</label>
+              <input type="number" formControlName="expMonth" placeholder="MM" min="1" max="12"
+                [class.is-invalid]="getPaymentControl('expMonth')?.touched && getPaymentControl('expMonth')?.invalid">
+            </div>
+            <div class="form-group">
+              <label>Exp. Year</label>
+              <input type="number" formControlName="expYear" placeholder="YYYY" min="2026"
+                [class.is-invalid]="getPaymentControl('expYear')?.touched && getPaymentControl('expYear')?.invalid">
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" formControlName="cvv" placeholder="123" maxlength="4"
+                [class.is-invalid]="getPaymentControl('cvv')?.touched && getPaymentControl('cvv')?.invalid">
+            </div>
+          </div>
+
+          <div class="payment-secure">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Your payment information is encrypted and secure.</span>
+          </div>
+        </div>
+
+        <div class="checkout-step__actions">
+          <button class="btn-secondary" (click)="goBack()">Back</button>
+          <button class="btn-primary btn-lg" (click)="submitPayment()" [disabled]="isLoading()" id="submit-payment">
+            @if (isLoading()) { <span class="spinner"></span> Authorizing... }
+            @else { Pay {{ cartTotal() | currency: cartCurrency() }} }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- SUCCESS -->
+    @if (currentStep() === 'success') {
+      <div class="checkout-success animate-scale-in">
+        <div class="success-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2>Order Confirmed</h2>
+        <p>Your order <strong>#{{ orderId() }}</strong> has been placed and payment was processed successfully.</p>
+        <div class="success-actions">
+          <a routerLink="/profile" class="btn-primary">View My Orders</a>
+          <a routerLink="/catalog" class="btn-secondary">Continue Shopping</a>
+        </div>
+      </div>
+    }
+  </div>
+</div>

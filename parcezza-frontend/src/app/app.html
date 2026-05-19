@@ -1,20 +1,203 @@
-<div class="app-container">
-  <header class="app-header">
-    <div class="header-brand">
-      <h1 style="margin:0; font-size: 2rem;">Carmine</h1>
-    </div>
-    <nav class="header-nav">
-      <a href="/">Home</a>
-      <a href="/catalog">Catalog</a>
-      <a href="/login" class="btn-primary" style="text-decoration: none;">Login</a>
+<!-- ══════════════ HEADER ══════════════ -->
+<header class="header" [class.header--scrolled]="headerScrolled()">
+  <div class="header__inner container">
+    <!-- Brand -->
+    <a routerLink="/" class="header__brand" (click)="closeMobileMenu()">
+      <span class="brand__icon">C</span>
+      <span class="brand__text">Carmine</span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="header__nav">
+      <a routerLink="/" routerLinkActive="nav-active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
+      <a routerLink="/catalog" routerLinkActive="nav-active" class="nav-link">Catalog</a>
     </nav>
-  </header>
 
-  <main class="app-main">
-    <router-outlet></router-outlet>
-  </main>
+    <!-- Actions -->
+    <div class="header__actions">
+      <!-- Cart -->
+      <button class="header__cart-btn" (click)="toggleCart()" id="cart-toggle-btn" aria-label="Shopping cart">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+        @if (cartCount() > 0) {
+          <span class="cart-badge">{{ cartCount() }}</span>
+        }
+      </button>
 
-  <footer class="app-footer">
-    <p>&copy; 2026 Carmine Commerce. All rights reserved.</p>
-  </footer>
-</div>
+      <!-- User (Desktop) -->
+      @if (isAuthenticated()) {
+        <div class="header__user-wrapper">
+          <button class="header__user-btn" (click)="toggleUserMenu()" id="user-menu-btn" aria-label="User menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+          @if (userMenuOpen()) {
+            <div class="user-dropdown animate-fade-in-up" (mouseleave)="closeUserMenu()">
+              <a routerLink="/profile" class="user-dropdown__item" (click)="closeUserMenu()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                My Profile
+              </a>
+              <button class="user-dropdown__item user-dropdown__item--danger" (click)="logout()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sign Out
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="btn-primary btn-sm header__login-btn" id="header-login-btn">Sign In</a>
+      }
+
+      <!-- Mobile Hamburger -->
+      <button class="header__hamburger" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen()" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  @if (mobileMenuOpen()) {
+    <div class="mobile-menu animate-fade-in">
+      <nav class="mobile-menu__nav">
+        <a routerLink="/" (click)="closeMobileMenu()" class="mobile-menu__link">Home</a>
+        <a routerLink="/catalog" (click)="closeMobileMenu()" class="mobile-menu__link">Catalog</a>
+        @if (isAuthenticated()) {
+          <a routerLink="/profile" (click)="closeMobileMenu()" class="mobile-menu__link">My Profile</a>
+          <button class="mobile-menu__link mobile-menu__link--danger" (click)="logout(); closeMobileMenu()">Sign Out</button>
+        } @else {
+          <a routerLink="/login" (click)="closeMobileMenu()" class="mobile-menu__link mobile-menu__link--cta">Sign In</a>
+          <a routerLink="/register" (click)="closeMobileMenu()" class="mobile-menu__link">Create Account</a>
+        }
+      </nav>
+    </div>
+  }
+</header>
+
+<!-- ══════════════ CART DRAWER ══════════════ -->
+@if (isCartOpen()) {
+  <div class="overlay" (click)="closeCart()"></div>
+  <aside class="cart-drawer animate-slide-in-right" id="cart-drawer">
+    <div class="cart-drawer__header">
+      <h3>Your Cart</h3>
+      <button class="cart-drawer__close" (click)="closeCart()" aria-label="Close cart">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    @if (cartData()?.items?.length) {
+      <div class="cart-drawer__items">
+        @for (item of cartData()!.items; track item.id) {
+          <div class="cart-item animate-fade-in-up">
+            <div class="cart-item__image">
+              <div class="cart-item__image-placeholder">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+            </div>
+            <div class="cart-item__details">
+              <p class="cart-item__name">Product #{{ item.productId }}</p>
+              <p class="cart-item__meta">Qty: {{ item.quantity }} × {{ item.unitPrice | currency: item.currency }}</p>
+              <p class="cart-item__total">{{ item.lineTotal | currency: item.currency }}</p>
+            </div>
+            <button class="cart-item__remove" (click)="removeCartItem(item.id)" aria-label="Remove item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+            </button>
+          </div>
+        }
+      </div>
+      <div class="cart-drawer__footer">
+        <div class="cart-drawer__total">
+          <span>Total</span>
+          <strong>{{ cartData()!.totalAmount | currency: cartData()!.currency }}</strong>
+        </div>
+        <a routerLink="/checkout" class="btn-primary btn-lg" style="width:100%; text-align:center; text-decoration:none; display:block;" (click)="closeCart()">
+          Checkout
+        </a>
+      </div>
+    } @else {
+      <div class="cart-drawer__empty">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+        <p>Your cart is empty</p>
+        <a routerLink="/catalog" class="btn-secondary btn-sm" (click)="closeCart()">Browse Products</a>
+      </div>
+    }
+  </aside>
+}
+
+<!-- ══════════════ MAIN CONTENT ══════════════ -->
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="footer">
+  <div class="footer__inner container">
+    <div class="footer__grid">
+      <!-- Brand Column -->
+      <div class="footer__col footer__brand-col">
+        <div class="footer__brand">
+          <span class="brand__icon brand__icon--light">C</span>
+          <span class="footer__brand-name">Carmine</span>
+        </div>
+        <p class="footer__tagline">
+          Discover timeless elegance. A premium shopping experience with curated products and exceptional quality.
+        </p>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer__col">
+        <h4 class="footer__heading">Shop</h4>
+        <nav class="footer__links">
+          <a routerLink="/catalog">All Products</a>
+          <a routerLink="/catalog">New Arrivals</a>
+          <a routerLink="/catalog">Best Sellers</a>
+        </nav>
+      </div>
+
+      <!-- Account -->
+      <div class="footer__col">
+        <h4 class="footer__heading">Account</h4>
+        <nav class="footer__links">
+          <a routerLink="/profile">My Profile</a>
+          <a routerLink="/profile">Order History</a>
+          <a routerLink="/login">Sign In</a>
+        </nav>
+      </div>
+
+      <!-- Contact -->
+      <div class="footer__col">
+        <h4 class="footer__heading">Connect</h4>
+        <nav class="footer__links">
+          <a href="mailto:hello&#64;carmine.store">hello&#64;carmine.store</a>
+          <a href="#">Support Center</a>
+        </nav>
+        <div class="footer__social">
+          <a href="#" aria-label="Instagram" class="footer__social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" aria-label="Twitter" class="footer__social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; 2026 Carmine Commerce. All rights reserved.</p>
+      <p class="footer__credits">Crafted with passion.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast Notifications -->
+<app-toast />

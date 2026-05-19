@@ -2,28 +2,31 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  imageUrl: string;
-}
+import { Product } from '../models/product.model';
+import { CatalogResponse } from '../models/catalog.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CatalogService {
-  private readonly apiUrl = `${environment.apiUrl}/catalog`;
+  private readonly productsUrl = `${environment.apiUrl}/products`;
+  private readonly catalogsUrl = `${environment.apiUrl}/catalogs`;
 
   constructor(private http: HttpClient) {}
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.apiUrl}/products`);
+    return this.http.get<Product[]>(this.productsUrl);
   }
 
   getProductById(id: number): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/${id}`);
+    return this.http.get<Product>(`${this.productsUrl}/${id}`);
+  }
+
+  getCatalogs(): Observable<CatalogResponse[]> {
+    return this.http.get<CatalogResponse[]>(this.catalogsUrl);
+  }
+
+  getCatalogById(id: number): Observable<CatalogResponse> {
+    return this.http.get<CatalogResponse>(`${this.catalogsUrl}/${id}`);
   }
 }

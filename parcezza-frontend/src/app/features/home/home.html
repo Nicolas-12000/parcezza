@@ -1,0 +1,132 @@
+<!-- ══════════════ HERO SECTION ══════════════ -->
+<section class="hero">
+  <div class="hero__bg"></div>
+  <div class="hero__content container animate-fade-in-up">
+    <span class="hero__label">Premium Collection</span>
+    <h1 class="hero__title">Discover<br><em>Timeless Elegance</em></h1>
+    <p class="hero__subtitle">
+      Curated products crafted with passion. Experience shopping redefined with exceptional quality and unmistakable style.
+    </p>
+    <div class="hero__actions">
+      <a routerLink="/catalog" class="btn-primary btn-lg">Explore Collection</a>
+      <a routerLink="/register" class="btn-secondary btn-lg">Join Carmine</a>
+    </div>
+  </div>
+  <div class="hero__scroll-hint">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══════════════ FEATURED PRODUCTS ══════════════ -->
+<section class="section featured">
+  <div class="container">
+    <div class="section-header animate-fade-in-up">
+      <span class="section-label">Handpicked for you</span>
+      <h2>Featured Products</h2>
+      <div class="divider divider-center"></div>
+    </div>
+
+    @if (loading()) {
+      <div class="product-grid">
+        @for (i of [1,2,3,4]; track i) {
+          <app-skeleton-card [delay]="i * 100" />
+        }
+      </div>
+    } @else if (featuredProducts().length > 0) {
+      <div class="product-grid">
+        @for (product of featuredProducts(); track product.id; let i = $index) {
+          <a [routerLink]="['/product', product.id]" class="product-card animate-fade-in-up" [class]="'stagger-' + (i + 1)">
+            <div class="product-card__image" [style.background]="getProductGradient(i)">
+              <div class="product-card__image-content">
+                <span class="product-card__initial">{{ product.name.charAt(0) }}</span>
+              </div>
+              @if (product.stock > 0 && product.stock <= 5) {
+                <span class="product-card__badge badge-warning">Low Stock</span>
+              }
+              @if (product.stock === 0) {
+                <span class="product-card__badge badge-danger">Sold Out</span>
+              }
+            </div>
+            <div class="product-card__info">
+              <h3 class="product-card__name">{{ product.name }}</h3>
+              <p class="product-card__desc">{{ product.description || 'Premium quality product' }}</p>
+              <div class="product-card__footer">
+                <span class="product-card__price">{{ product.basePrice | currency: product.currency || 'USD' }}</span>
+                <span class="product-card__view">View →</span>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+      <div class="featured__cta animate-fade-in-up stagger-6">
+        <a routerLink="/catalog" class="btn-secondary">View All Products</a>
+      </div>
+    } @else {
+      <div class="featured__empty animate-fade-in-up">
+        <p>New products arriving soon. Stay tuned!</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- ══════════════ CATALOGS ══════════════ -->
+@if (catalogs().length > 0) {
+  <section class="section catalogs">
+    <div class="container">
+      <div class="section-header animate-fade-in-up">
+        <span class="section-label">Browse by collection</span>
+        <h2>Our Collections</h2>
+        <div class="divider divider-center"></div>
+      </div>
+      <div class="catalogs-grid">
+        @for (catalog of catalogs(); track catalog.id; let i = $index) {
+          <a [routerLink]="['/catalog']" [queryParams]="{collection: catalog.slug}" class="catalog-card animate-fade-in-up" [class]="'stagger-' + (i + 1)">
+            <div class="catalog-card__bg" [style.background]="getCatalogGradient(i)"></div>
+            <div class="catalog-card__content">
+              <h3>{{ catalog.name }}</h3>
+              <span class="catalog-card__count">{{ catalog.productIds.length }} products</span>
+            </div>
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ══════════════ BRAND STORY ══════════════ -->
+<section class="section brand-story">
+  <div class="container">
+    <div class="brand-story__grid">
+      <div class="brand-story__visual animate-fade-in-up">
+        <div class="brand-story__shape"></div>
+        <div class="brand-story__shape brand-story__shape--accent"></div>
+      </div>
+      <div class="brand-story__text animate-fade-in-up stagger-2">
+        <span class="section-label">Our Philosophy</span>
+        <h2>Where Quality Meets Elegance</h2>
+        <div class="divider"></div>
+        <p>
+          At Carmine, we believe that every product tells a story. Our curated collections bring together 
+          artisanal craftsmanship and contemporary design, creating pieces that elevate your everyday experience.
+        </p>
+        <p>
+          From the careful selection of materials to the final touch of presentation, 
+          every detail is thoughtfully considered to deliver excellence you can feel.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CTA BANNER ══════════════ -->
+<section class="cta-banner">
+  <div class="container">
+    <div class="cta-banner__inner animate-fade-in-up">
+      <h2>Start Your Journey</h2>
+      <p>Join Carmine today and discover a world of premium products curated just for you.</p>
+      <a routerLink="/register" class="btn-primary btn-lg">Create Account</a>
+    </div>
+  </div>
+</section>

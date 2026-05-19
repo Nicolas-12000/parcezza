@@ -1,0 +1,111 @@
+<div class="product-detail-page">
+  <div class="container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb animate-fade-in">
+      <a routerLink="/">Home</a>
+      <span class="breadcrumb__separator">/</span>
+      <a routerLink="/catalog">Catalog</a>
+      <span class="breadcrumb__separator">/</span>
+      <span class="breadcrumb__current">{{ product()?.name || 'Product' }}</span>
+    </nav>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="product-detail__skeleton">
+        <div class="skeleton skeleton-image" style="height: 420px; border-radius: var(--rounded-lg);"></div>
+        <div>
+          <div class="skeleton skeleton-text lg" style="width: 70%; margin-bottom: 16px;"></div>
+          <div class="skeleton skeleton-text" style="width: 30%; margin-bottom: 24px;"></div>
+          <div class="skeleton skeleton-text" style="width: 100%; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 90%; margin-bottom: 8px;"></div>
+          <div class="skeleton skeleton-text" style="width: 60%; margin-bottom: 32px;"></div>
+          <div class="skeleton" style="width: 120px; height: 48px; border-radius: var(--rounded-md);"></div>
+        </div>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="product-detail__error animate-fade-in-up">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h2>{{ error() }}</h2>
+        <a routerLink="/catalog" class="btn-primary">Back to Catalog</a>
+      </div>
+    }
+
+    <!-- Product Detail -->
+    @if (product(); as p) {
+      <div class="product-detail animate-fade-in-up">
+        <!-- Image -->
+        <div class="product-detail__image" [style.background]="'linear-gradient(135deg, #f5e6e6 0%, #e8d0d0 100%)'">
+          <span class="product-detail__initial">{{ p.name.charAt(0) }}</span>
+        </div>
+
+        <!-- Info -->
+        <div class="product-detail__info">
+          <div class="product-detail__top">
+            <span class="product-detail__sku">{{ p.sku }}</span>
+            <span class="stock-badge" [class]="getStockStatus(p.stock)">
+              <span class="stock-dot" [class]="getStockStatus(p.stock)"></span>
+              {{ getStockLabel(p.stock) }}
+            </span>
+          </div>
+
+          <h1 class="product-detail__name">{{ p.name }}</h1>
+
+          <p class="product-detail__price">{{ p.basePrice | currency: p.currency || 'USD' }}</p>
+
+          <div class="divider"></div>
+
+          <div class="product-detail__description">
+            <h4>Description</h4>
+            <p>{{ p.description || 'This premium product is crafted with the finest materials and attention to detail. Experience quality that speaks for itself.' }}</p>
+          </div>
+
+          @if (p.stock > 0) {
+            <div class="product-detail__actions">
+              <div class="quantity-selector">
+                <button class="quantity-btn" (click)="decrementQty()" [disabled]="quantity() <= 1">−</button>
+                <span class="quantity-value">{{ quantity() }}</span>
+                <button class="quantity-btn" (click)="incrementQty()" [disabled]="quantity() >= p.stock">+</button>
+              </div>
+              <button
+                class="btn-primary btn-lg product-detail__add-btn"
+                (click)="addToCart()"
+                [disabled]="addingToCart()"
+                id="product-add-to-cart"
+              >
+                @if (addingToCart()) {
+                  <span class="spinner"></span> Adding...
+                } @else {
+                  Add to Cart — {{ (p.basePrice * quantity()) | currency: p.currency || 'USD' }}
+                }
+              </button>
+            </div>
+          } @else {
+            <div class="product-detail__out-of-stock">
+              <p>This product is currently out of stock.</p>
+            </div>
+          }
+
+          <div class="product-detail__features">
+            <div class="feature">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              <span>Free shipping on orders over $50</span>
+            </div>
+            <div class="feature">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Secure checkout</span>
+            </div>
+            <div class="feature">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+              <span>Quality guaranteed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
