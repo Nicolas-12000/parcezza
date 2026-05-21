@@ -4,7 +4,6 @@ import com.parcezza.backend.dto.product.ProductResponse;
 import com.parcezza.backend.dto.product.ProductUpsertRequest;
 import com.parcezza.backend.service.ProductService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;

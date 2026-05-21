@@ -1,6 +1,6 @@
 ---
 version: "alpha"
-name: "Carmine Commerce"
+name: "Parcezza Commerce"
 description: "A premium, warm, and harmonious e-commerce design system focusing on reddish tones."
 colors:
   primary: "#2C1011"
@@ -48,7 +48,7 @@ components:
 
 ## Overview
 
-**Carmine Commerce** is a premium design system tailored for a modern e-commerce platform. It leverages a palette of harmonious reddish tones to evoke passion, energy, and elegance, balanced by a warm, inviting neutral background. The design marries the classic elegance of serif headings with the crisp legibility of modern sans-serif body text.
+**Parcezza Commerce** is a premium design system tailored for a modern e-commerce platform. It leverages a palette of harmonious reddish tones to evoke passion, energy, and elegance, balanced by a warm, inviting neutral background. The design marries the classic elegance of serif headings with the crisp legibility of modern sans-serif body text.
 
 ## Colors
 

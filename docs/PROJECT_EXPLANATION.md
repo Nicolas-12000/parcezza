@@ -1,4 +1,4 @@
-# Documentación Técnica Detallada: Proyecto Carmine Commerce
+# Documentación Técnica Detallada: Proyecto Parcezza Commerce
 
 Esta documentación explica en profundidad la arquitectura, la lógica de negocio y los algoritmos que determinan cómo se calculan y guardan los datos críticos en el sistema.
 
