@@ -144,77 +144,77 @@ public class DataLoader {
 
             Seller seller = new Seller();
             seller.setOwner(luisa);
-            seller.setCompanyName("Panaderia La Esquina");
-            seller.setContactEmail("ventas@laesquina.com");
-            seller.setTaxId("NIT-901234567-1");
+            seller.setCompanyName("ACME Electronics");
+            seller.setContactEmail("sales@acme-electronics.com");
+            seller.setTaxId("NIT-900111222-3");
             seller.setStatus(SellerStatus.APPROVED);
-            seller.setLogoUrl("https://images.parcezza.local/brands/la-esquina.png");
+            seller.setLogoUrl("https://images.parcezza.local/brands/acme-electronics.png");
             sellerRepository.save(seller);
 
             Product pizzaClasica = new Product();
-            pizzaClasica.setSku("PZ-CLASICA-12");
-            pizzaClasica.setName("Pizza Clasica 12\"");
-            pizzaClasica.setDescription("Masa artesanal, salsa de tomate, mozzarella y oregano.");
-            pizzaClasica.setBasePrice(new BigDecimal("12.50"));
+            pizzaClasica.setSku("TV-55-4K");
+            pizzaClasica.setName("TV Smart 55\" 4K");
+            pizzaClasica.setDescription("Televisor Smart 55 con resolución 4K, HDR y SmartOS.");
+            pizzaClasica.setBasePrice(new BigDecimal("549.99"));
             pizzaClasica.setCurrency("USD");
-            pizzaClasica.setStock(80);
+            pizzaClasica.setStock(25);
             pizzaClasica.setSeller(seller);
             productRepository.save(pizzaClasica);
 
             ProductVariant clasicaSmall = new ProductVariant();
             clasicaSmall.setProduct(pizzaClasica);
-            clasicaSmall.setSku("PZ-CLASICA-12-S");
-            clasicaSmall.setPriceOverride(new BigDecimal("11.90"));
-            clasicaSmall.setStock(40);
+            clasicaSmall.setSku("TV-43-4K");
+            clasicaSmall.setPriceOverride(new BigDecimal("449.99"));
+            clasicaSmall.setStock(15);
             VariantAttribute clasicaSmallSize = new VariantAttribute();
             clasicaSmallSize.setVariant(clasicaSmall);
-            clasicaSmallSize.setName("Size");
-            clasicaSmallSize.setValue("Small");
+            clasicaSmallSize.setName("ScreenSize");
+            clasicaSmallSize.setValue("43\"");
             clasicaSmall.getAttributes().add(clasicaSmallSize);
             productVariantRepository.save(clasicaSmall);
 
             ProductVariant clasicaLarge = new ProductVariant();
             clasicaLarge.setProduct(pizzaClasica);
-            clasicaLarge.setSku("PZ-CLASICA-12-L");
-            clasicaLarge.setPriceOverride(new BigDecimal("14.90"));
-            clasicaLarge.setStock(40);
+            clasicaLarge.setSku("TV-55-4K-L");
+            clasicaLarge.setPriceOverride(new BigDecimal("599.99"));
+            clasicaLarge.setStock(10);
             VariantAttribute clasicaLargeSize = new VariantAttribute();
             clasicaLargeSize.setVariant(clasicaLarge);
-            clasicaLargeSize.setName("Size");
-            clasicaLargeSize.setValue("Large");
+            clasicaLargeSize.setName("ScreenSize");
+            clasicaLargeSize.setValue("55\"");
             clasicaLarge.getAttributes().add(clasicaLargeSize);
             productVariantRepository.save(clasicaLarge);
 
             Product pizzaPepperoni = new Product();
-            pizzaPepperoni.setSku("PZ-PEPPERONI-12");
-            pizzaPepperoni.setName("Pizza Pepperoni 12\"");
-            pizzaPepperoni.setDescription("Pepperoni, mozzarella y mezcla de especias italianas.");
-            pizzaPepperoni.setBasePrice(new BigDecimal("15.50"));
+            pizzaPepperoni.setSku("PH-ALPHA-128");
+            pizzaPepperoni.setName("Phone Alpha 128GB");
+            pizzaPepperoni.setDescription("Smartphone Alpha con 128GB, cámara dual y batería de larga duración.");
+            pizzaPepperoni.setBasePrice(new BigDecimal("699.99"));
             pizzaPepperoni.setCurrency("USD");
-            pizzaPepperoni.setStock(60);
+            pizzaPepperoni.setStock(120);
             pizzaPepperoni.setSeller(seller);
             productRepository.save(pizzaPepperoni);
 
             Product bebidaCola = new Product();
-            bebidaCola.setSku("BEB-COLA-355");
-            bebidaCola.setName("Soda Cola 355ml");
-            bebidaCola.setDescription("Bebida gaseosa clasica, lata fria.");
-            bebidaCola.setBasePrice(new BigDecimal("2.50"));
+            bebidaCola.setSku("WH-1000");
+            bebidaCola.setName("Headphones Wireless X");
+            bebidaCola.setDescription("Auriculares inalámbricos con cancelación de ruido y 30h de batería.");
+            bebidaCola.setBasePrice(new BigDecimal("199.99"));
             bebidaCola.setCurrency("USD");
-            bebidaCola.setStock(200);
+            bebidaCola.setStock(250);
             bebidaCola.setSeller(seller);
             productRepository.save(bebidaCola);
 
             Catalog catalogPizzas = new Catalog();
-            catalogPizzas.setName("Pizzas populares");
-            catalogPizzas.setSlug("pizzas-populares");
+            catalogPizzas.setName("Electrónicos populares");
+            catalogPizzas.setSlug("electronicos-populares");
             catalogPizzas.getProducts().add(pizzaClasica);
             catalogPizzas.getProducts().add(pizzaPepperoni);
             catalogRepository.save(catalogPizzas);
 
             Catalog catalogBebidas = new Catalog();
-            catalogBebidas.setName("Bebidas");
-            catalogBebidas.setSlug("bebidas");
+            catalogBebidas.setName("Accesorios");
+            catalogBebidas.setSlug("accesorios");
             catalogBebidas.getProducts().add(bebidaCola);
             catalogRepository.save(catalogBebidas);
 
@@ -226,9 +226,9 @@ public class DataLoader {
             camilaItem.setCart(camilaCart);
             camilaItem.setProduct(pizzaPepperoni);
             camilaItem.setQuantity(1);
-            camilaItem.setUnitPrice(new BigDecimal("15.50"));
+            camilaItem.setUnitPrice(new BigDecimal("699.99"));
             camilaItem.setCurrency("USD");
-            camilaItem.setLineTotal(new BigDecimal("15.50"));
+            camilaItem.setLineTotal(new BigDecimal("699.99"));
             camilaItem.setReservedUntil(Instant.now().plusSeconds(3600));
             cartItemRepository.save(camilaItem);
 
@@ -240,9 +240,9 @@ public class DataLoader {
             juanItem.setCart(juanCart);
             juanItem.setProduct(bebidaCola);
             juanItem.setQuantity(2);
-            juanItem.setUnitPrice(new BigDecimal("2.50"));
+            juanItem.setUnitPrice(new BigDecimal("199.99"));
             juanItem.setCurrency("USD");
-            juanItem.setLineTotal(new BigDecimal("5.00"));
+            juanItem.setLineTotal(new BigDecimal("399.98"));
             cartItemRepository.save(juanItem);
 
             Order orderCamila = new Order();
@@ -250,7 +250,7 @@ public class DataLoader {
             orderCamila.setShippingAddress(camilaHome);
             orderCamila.setStatus(OrderStatus.DELIVERED);
             orderCamila.setCurrency("USD");
-            orderCamila.setTotalAmount(new BigDecimal("19.90"));
+            orderCamila.setTotalAmount(new BigDecimal("949.97"));
             orderRepository.save(orderCamila);
 
             OrderItem camilaPizza = new OrderItem();
@@ -258,18 +258,18 @@ public class DataLoader {
             camilaPizza.setProduct(pizzaClasica);
             camilaPizza.setVariant(clasicaLarge);
             camilaPizza.setQuantity(1);
-            camilaPizza.setUnitPrice(new BigDecimal("14.90"));
+            camilaPizza.setUnitPrice(new BigDecimal("599.99"));
             camilaPizza.setCurrency("USD");
-            camilaPizza.setLineTotal(new BigDecimal("14.90"));
+            camilaPizza.setLineTotal(new BigDecimal("599.99"));
             orderItemRepository.save(camilaPizza);
 
             OrderItem camilaSoda = new OrderItem();
             camilaSoda.setOrder(orderCamila);
             camilaSoda.setProduct(bebidaCola);
             camilaSoda.setQuantity(2);
-            camilaSoda.setUnitPrice(new BigDecimal("2.50"));
+            camilaSoda.setUnitPrice(new BigDecimal("199.99"));
             camilaSoda.setCurrency("USD");
-            camilaSoda.setLineTotal(new BigDecimal("5.00"));
+            camilaSoda.setLineTotal(new BigDecimal("399.98"));
             orderItemRepository.save(camilaSoda);
 
             Payment camilaPayment = new Payment();
@@ -278,7 +278,7 @@ public class DataLoader {
             camilaPayment.setProvider("stripe");
             camilaPayment.setProviderRef("pi_3NQ1PLv8C6");
             camilaPayment.setCardLast4("4242");
-            camilaPayment.setAmount(new BigDecimal("19.90"));
+            camilaPayment.setAmount(new BigDecimal("949.97"));
             camilaPayment.setCurrency("USD");
             paymentRepository.save(camilaPayment);
 
@@ -293,16 +293,16 @@ public class DataLoader {
             orderJuan.setShippingAddress(juanHome);
             orderJuan.setStatus(OrderStatus.PROCESSING);
             orderJuan.setCurrency("USD");
-            orderJuan.setTotalAmount(new BigDecimal("31.00"));
+            orderJuan.setTotalAmount(new BigDecimal("1399.98"));
             orderRepository.save(orderJuan);
 
             OrderItem juanPizza = new OrderItem();
             juanPizza.setOrder(orderJuan);
             juanPizza.setProduct(pizzaPepperoni);
             juanPizza.setQuantity(2);
-            juanPizza.setUnitPrice(new BigDecimal("15.50"));
+            juanPizza.setUnitPrice(new BigDecimal("699.99"));
             juanPizza.setCurrency("USD");
-            juanPizza.setLineTotal(new BigDecimal("31.00"));
+            juanPizza.setLineTotal(new BigDecimal("1399.98"));
             orderItemRepository.save(juanPizza);
 
             Payment juanPayment = new Payment();
@@ -310,7 +310,7 @@ public class DataLoader {
             juanPayment.setStatus(PaymentStatus.PENDING);
             juanPayment.setProvider("mercado_pago");
             juanPayment.setProviderRef("mp_984203");
-            juanPayment.setAmount(new BigDecimal("31.00"));
+            juanPayment.setAmount(new BigDecimal("1399.98"));
             juanPayment.setCurrency("USD");
             paymentRepository.save(juanPayment);
 
