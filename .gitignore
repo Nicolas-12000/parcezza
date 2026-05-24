@@ -1,0 +1,43 @@
+# Shared local files
+.DS_Store
+Thumbs.db
+
+# IDEs and workspace files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+
+# Environment files
+.env
+.env.*
+*.local
+
+# Java / Maven
+**/target/
+**/build/
+*.log
+
+# Node / Angular
+**/node_modules/
+**/dist/
+**/coverage/
+**/.angular/cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Misc temporary files
+tmp/
+temp/
+*.pid
