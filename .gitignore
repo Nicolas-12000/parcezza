@@ -4,12 +4,7 @@ Thumbs.db
 
 # IDEs and workspace files
 .idea/
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/mcp.json
+.vscode/
 
 # Environment files
 .env
