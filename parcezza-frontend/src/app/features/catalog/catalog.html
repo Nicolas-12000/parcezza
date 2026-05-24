@@ -26,6 +26,13 @@
             id="catalog-search"
           >
         </div>
+
+        <div class="search-bar__controls">
+          <select class="search-bar__select" [ngModel]="collection()" (ngModelChange)="onCollectionChange($event)">
+            <option [ngValue]="null">Todas las colecciones</option>
+            <option *ngFor="let c of catalogs()" [ngValue]="c.slug">{{ c.name }}</option>
+          </select>
+        </div>
       </div>
     }
 

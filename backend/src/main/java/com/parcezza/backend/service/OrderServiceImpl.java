@@ -147,6 +147,7 @@ public class OrderServiceImpl implements OrderService {
             .map(item -> new OrderItemResponse(
                 item.getId(),
                 item.getProduct().getId(),
+                item.getProduct().getName(),
                 item.getVariant() == null ? null : item.getVariant().getId(),
                 item.getQuantity(),
                 item.getUnitPrice(),

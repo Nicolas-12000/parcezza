@@ -12,6 +12,7 @@ export interface OrderResponse {
 export interface OrderItemResponse {
   id: number;
   productId: number;
+  productName?: string;
   variantId: number | null;
   quantity: number;
   unitPrice: number;

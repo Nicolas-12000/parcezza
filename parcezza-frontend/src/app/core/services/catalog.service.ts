@@ -15,12 +15,15 @@ export class CatalogService {
 
   constructor(private http: HttpClient) {}
 
-  getProducts(page: number = 0, size: number = 12, query: string = ''): Observable<PageResponse<Product>> {
+  getProducts(page: number = 0, size: number = 12, query: string = '', collection?: string): Observable<PageResponse<Product>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
     if (query) {
       params = params.set('query', query);
+    }
+    if (collection) {
+      params = params.set('collection', collection);
     }
     return this.http.get<PageResponse<Product>>(this.productsUrl, { params });
   }
@@ -35,6 +38,18 @@ export class CatalogService {
 
   getCatalogById(id: number): Observable<CatalogResponse> {
     return this.http.get<CatalogResponse>(`${this.catalogsUrl}/${id}`);
+  }
+
+  createCatalog(request: { name: string; slug: string }): Observable<CatalogResponse> {
+    return this.http.post<CatalogResponse>(this.catalogsUrl, request);
+  }
+
+  updateCatalog(id: number, request: { name: string; slug: string }): Observable<CatalogResponse> {
+    return this.http.put<CatalogResponse>(`${this.catalogsUrl}/${id}`, request);
+  }
+
+  deleteCatalog(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.catalogsUrl}/${id}`);
   }
 
   createProduct(request: any): Observable<Product> {

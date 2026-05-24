@@ -197,7 +197,7 @@
               </div>
             </div>
             <div class="cart-item__details">
-              <p class="cart-item__name">Producto #{{ item.productId }}</p>
+              <p class="cart-item__name">{{ item.productName || ('Producto #' + item.productId) }}</p>
               <p class="cart-item__meta">
                 Cant: {{ item.quantity }} × {{ item.unitPrice | currency: item.currency }}
               </p>

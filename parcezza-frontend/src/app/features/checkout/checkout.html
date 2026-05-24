@@ -117,7 +117,7 @@
           @for (item of cartItems(); track item.id) {
             <div class="review-item">
               <div class="review-item__info">
-                <p class="review-item__name">Producto #{{ item.productId }}</p>
+                <p class="review-item__name">{{ item.productName || ('Producto #' + item.productId) }}</p>
                 <p class="review-item__qty">Cantidad: {{ item.quantity }}</p>
               </div>
               <p class="review-item__price">{{ item.lineTotal | currency: item.currency }}</p>

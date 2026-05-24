@@ -352,6 +352,51 @@
     <!-- Admin Panel Tab -->
     @if (activeTab() === 'admin' && isAdmin()) {
       <div class="profile-section animate-fade-in">
+        <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Panel de Administración</h3>
+
+        <!-- Catalog Management -->
+        <div class="card" style="padding: 16px; margin-bottom: 16px;">
+          <h4>Gestión de Catálogos</h4>
+          <p style="margin: 8px 0 12px; color: var(--color-neutral-dark);">Crea, edita o elimina colecciones que agrupan productos.</p>
+
+          <form [formGroup]="catalogForm" (ngSubmit)="saveCatalog()" style="display:flex; gap:8px; align-items:center;">
+            <input formControlName="name" placeholder="Nombre del catálogo" />
+            <input formControlName="slug" placeholder="slug-coleccion" />
+            <button class="btn-primary btn-sm" type="submit">{{ editingCatalog() ? 'Actualizar' : 'Crear' }}</button>
+            <button type="button" class="btn-ghost btn-sm" (click)="openNewCatalogForm()">Nuevo</button>
+          </form>
+
+          <div style="margin-top:12px;">
+            @if (loadingCatalogs()) {
+              <div class="spinner" style="width:20px; height:20px;"></div>
+            } @else if (catalogs().length > 0) {
+              <table style="width:100%; margin-top:8px; border-collapse:collapse;">
+                <thead>
+                  <tr style="text-align:left;">
+                    <th>Nombre</th>
+                    <th>Slug</th>
+                    <th style="text-align:right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cat of catalogs(); track cat.id) {
+                    <tr>
+                      <td>{{ cat.name }}</td>
+                      <td>{{ cat.slug }}</td>
+                      <td style="text-align:right;">
+                        <button class="btn-ghost btn-sm" (click)="editCatalog(cat)">Editar</button>
+                        <button class="btn-outline btn-sm" (click)="deleteCatalog(cat.id)" style="color:var(--color-danger);">Eliminar</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            } @else {
+              <p style="opacity:0.8;">No hay catálogos registrados.</p>
+            }
+          </div>
+        </div>
+
         <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Solicitudes de Vendedor Pendientes</h3>
 
         @if (loadingAdmin()) {

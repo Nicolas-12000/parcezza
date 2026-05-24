@@ -8,6 +8,7 @@ export interface CartResponse {
 export interface CartItemResponse {
   id: number;
   productId: number;
+  productName?: string;
   variantId: number | null;
   quantity: number;
   unitPrice: number;

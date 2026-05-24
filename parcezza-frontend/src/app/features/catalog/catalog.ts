@@ -1,13 +1,12 @@
 import { Component, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CatalogService } from '../../core/services/catalog.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 import { ToastService } from '../../core/services/toast.service';
 import { Product } from '../../core/models/product.model';
-import { Router } from '@angular/router';
 import { SkeletonCardComponent } from '../../shared/components/skeleton-card/skeleton-card';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state';
 
@@ -20,6 +19,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 })
 export class CatalogComponent implements OnInit {
   products = signal<Product[]>([]);
+  catalogs = signal<any[]>([]);
   searchQuery = signal('');
   loading = signal(true);
   error = signal<string | null>(null);
@@ -29,16 +29,38 @@ export class CatalogComponent implements OnInit {
   pageSize = 12;
   hasMore = signal(true);
   loadingMore = signal(false);
+  collection = signal<string | null>(null);
 
   constructor(
     private catalogService: CatalogService,
     private authService: AuthService,
     private cartService: CartService,
     private toastService: ToastService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    const slug = this.route.snapshot.queryParamMap.get('collection');
+    this.collection.set(slug);
+    this.loadCatalogs();
+    this.loadProducts(true);
+  }
+
+  loadCatalogs(): void {
+    this.catalogService.getCatalogs().subscribe({
+      next: (cats) => this.catalogs.set(cats),
+      error: () => {}
+    });
+  }
+
+  onCollectionChange(slug: string | null): void {
+    const queryParams: any = {};
+    if (slug) queryParams.collection = slug;
+    else queryParams.collection = null;
+    this.router.navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge' });
+    this.collection.set(slug);
+    this.page.set(0);
     this.loadProducts(true);
   }
 
@@ -52,7 +74,7 @@ export class CatalogComponent implements OnInit {
       this.loadingMore.set(true);
     }
 
-    this.catalogService.getProducts(this.page(), this.pageSize, this.searchQuery()).subscribe({
+    this.catalogService.getProducts(this.page(), this.pageSize, this.searchQuery(), this.collection() ?? undefined).subscribe({
       next: (response) => {
         const newItems = response.content.filter(p => p.active);
         if (reset) {

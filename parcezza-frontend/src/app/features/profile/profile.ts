@@ -23,6 +23,9 @@ export class ProfileComponent implements OnInit {
   orders = signal<OrderResponse[]>([]);
   sellerProfile = signal<any | null>(null);
   sellerRequests = signal<any[]>([]);
+  catalogs = signal<any[]>([]);
+  loadingCatalogs = signal(false);
+  editingCatalog = signal<any | null>(null);
 
   loadingProfile = signal(true);
   loadingOrders = signal(true);
@@ -40,6 +43,7 @@ export class ProfileComponent implements OnInit {
   addressForm: FormGroup;
   sellerForm: FormGroup;
   productForm: FormGroup;
+  catalogForm: FormGroup;
 
   isAdmin = computed(() => this.profile()?.roles?.includes('ROLE_ADMIN') || false);
   isSeller = computed(() => this.profile()?.roles?.includes('ROLE_SELLER') || false);
@@ -80,13 +84,18 @@ export class ProfileComponent implements OnInit {
       currency: ['USD'],
       active: [true]
     });
+
+    // catalog form for admin
+    this.catalogForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      slug: ['', [Validators.required, Validators.minLength(3)]]
+    });
   }
 
   ngOnInit(): void {
     this.loadProfile();
     this.loadAddresses();
     this.loadOrders();
-    this.loadSellerProfile();
   }
 
   loadProfile(): void {
@@ -97,6 +106,9 @@ export class ProfileComponent implements OnInit {
         this.loadingProfile.set(false);
         if (p.roles?.includes('ROLE_ADMIN')) {
           this.loadAdminRequests();
+        }
+        if (p.roles?.includes('ROLE_SELLER')) {
+          this.loadSellerProfile();
         }
       },
       error: () => this.loadingProfile.set(false)
@@ -140,8 +152,67 @@ export class ProfileComponent implements OnInit {
       next: (requests) => {
         this.sellerRequests.set(requests);
         this.loadingAdmin.set(false);
+        // load catalogs for admin management
+        this.loadCatalogs();
       },
       error: () => this.loadingAdmin.set(false)
+    });
+  }
+
+  loadCatalogs(): void {
+    this.loadingCatalogs.set(true);
+    this.catalogService.getCatalogs().subscribe({
+      next: (cats) => {
+        this.catalogs.set(cats);
+        this.loadingCatalogs.set(false);
+      },
+      error: () => this.loadingCatalogs.set(false)
+    });
+  }
+
+  openNewCatalogForm(): void {
+    this.editingCatalog.set(null);
+    this.catalogForm.reset();
+  }
+
+  editCatalog(catalog: any): void {
+    this.editingCatalog.set(catalog);
+    this.catalogForm.patchValue({ name: catalog.name, slug: catalog.slug });
+  }
+
+  saveCatalog(): void {
+    if (this.catalogForm.invalid) return;
+    const payload = this.catalogForm.value;
+    const editing = this.editingCatalog();
+    if (editing) {
+      this.catalogService.updateCatalog(editing.id, payload).subscribe({
+        next: (c) => {
+          this.toastService.success('Catálogo actualizado');
+          this.loadCatalogs();
+          this.editingCatalog.set(null);
+        },
+        error: (err) => this.toastService.error(err.error?.message || 'Error al actualizar catálogo')
+      });
+    } else {
+      this.catalogService.createCatalog(payload).subscribe({
+        next: (c) => {
+          this.toastService.success('Catálogo creado');
+          this.loadCatalogs();
+          this.catalogForm.reset();
+        },
+        error: (err) => this.toastService.error(err.error?.message || 'Error al crear catálogo')
+      });
+    }
+  }
+
+  deleteCatalog(id: number): void {
+    if (!confirm('¿Eliminar catálogo? Esta acción es irreversible.')) return;
+    this.catalogService.deleteCatalog(id).subscribe({
+      next: () => {
+        this.toastService.success('Catálogo eliminado');
+        this.loadCatalogs();
+      },
+      error: () => this.toastService.error('Error al eliminar catálogo')
     });
   }
 

@@ -21,6 +21,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         "LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%'))")
     Page<Product> searchProducts(@Param("query") String query, Pageable pageable);
 
+    Page<Product> findByIdIn(List<Long> ids, Pageable pageable);
+
+    @Query("SELECT p FROM Catalog c JOIN c.products p WHERE c.slug = :slug")
+    Page<Product> findByCatalogSlug(@Param("slug") String slug, Pageable pageable);
+
+    @Query("SELECT p FROM Catalog c JOIN c.products p WHERE c.slug = :slug AND (" +
+        "LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+        "LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+        "LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<Product> searchProductsByCatalog(@Param("slug") String slug, @Param("query") String query, Pageable pageable);
+
     @Modifying
     @Query("UPDATE Product p SET p.stock = p.stock + :amount WHERE p.id = :id AND (p.stock + :amount) >= 0")
     int adjustStockAtomically(@Param("id") Long id, @Param("amount") int amount);

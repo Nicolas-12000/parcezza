@@ -220,6 +220,7 @@ public class CartServiceImpl implements CartService {
         return new CartItemResponse(
             item.getId(),
             item.getProduct().getId(),
+            item.getProduct().getName(),
             variantId,
             item.getQuantity(),
             item.getUnitPrice(),

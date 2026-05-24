@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.List;
 
 public record ProductUpsertRequest(
     @NotBlank @Size(max = 100) String sku,
@@ -13,6 +14,7 @@ public record ProductUpsertRequest(
     @NotNull @PositiveOrZero BigDecimal basePrice,
     @NotBlank @Size(max = 10) String currency,
     @NotNull @PositiveOrZero Integer stock,
-    boolean active
+    boolean active,
+    List<Long> catalogIds
 ) {
 }

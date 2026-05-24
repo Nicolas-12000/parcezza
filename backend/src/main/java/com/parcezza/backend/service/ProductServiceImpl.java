@@ -24,13 +24,16 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final SellerRepository sellerRepository;
     private final CurrentUserService currentUserService;
+    private final CatalogService catalogService;
 
     public ProductServiceImpl(ProductRepository productRepository,
                               SellerRepository sellerRepository,
-                              CurrentUserService currentUserService) {
+                              CurrentUserService currentUserService,
+                              CatalogService catalogService) {
         this.productRepository = productRepository;
         this.sellerRepository = sellerRepository;
         this.currentUserService = currentUserService;
+        this.catalogService = catalogService;
     }
 
     @Override
@@ -46,7 +49,16 @@ public class ProductServiceImpl implements ProductService {
         applyRequest(product, request);
         product.setSeller(seller);
 
-        return toResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+
+        if (request.catalogIds() != null) {
+            for (Long catalogId : request.catalogIds()) {
+                // add product to requested catalogs (service layer will validate existence)
+                catalogService.addProduct(catalogId, saved.getId());
+            }
+        }
+
+        return toResponse(saved);
     }
 
     @Override
@@ -64,7 +76,15 @@ public class ProductServiceImpl implements ProductService {
             });
 
         applyRequest(product, request);
-        return toResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+
+        if (request.catalogIds() != null) {
+            for (Long catalogId : request.catalogIds()) {
+                catalogService.addProduct(catalogId, saved.getId());
+            }
+        }
+
+        return toResponse(saved);
     }
 
     @Override
@@ -77,8 +97,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductResponse> listAll(String query, Pageable pageable) {
+    public Page<ProductResponse> listAll(String query, String collectionSlug, Pageable pageable) {
         Page<Product> page;
+        if (collectionSlug != null && !collectionSlug.trim().isEmpty()) {
+            if (query != null && !query.trim().isEmpty()) {
+                return productRepository.searchProductsByCatalog(collectionSlug, query, pageable).map(this::toResponse);
+            }
+            return productRepository.findByCatalogSlug(collectionSlug, pageable).map(this::toResponse);
+        }
+
         if (query != null && !query.trim().isEmpty()) {
             page = productRepository.searchProducts(query, pageable);
         } else {

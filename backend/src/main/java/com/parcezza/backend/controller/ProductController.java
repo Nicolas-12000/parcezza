@@ -31,9 +31,10 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> list(
             @RequestParam(required = false) String query,
+            @RequestParam(required = false) String collection,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size) {
-        return ResponseEntity.ok(productService.listAll(query, PageRequest.of(page, size)));
+        return ResponseEntity.ok(productService.listAll(query, collection, PageRequest.of(page, size)));
     }
 
     @GetMapping("/{id}")

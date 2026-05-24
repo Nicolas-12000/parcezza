@@ -10,6 +10,6 @@ public interface ProductService {
     ProductResponse create(ProductUpsertRequest request);
     ProductResponse update(Long productId, ProductUpsertRequest request);
     ProductResponse getById(Long productId);
-    Page<ProductResponse> listAll(String query, Pageable pageable);
+    Page<ProductResponse> listAll(String query, String collectionSlug, Pageable pageable);
     void delete(Long productId);
 }
