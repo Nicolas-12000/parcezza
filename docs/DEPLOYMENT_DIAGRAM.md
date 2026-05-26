@@ -1,4 +1,4 @@
- # Deployment Diagram (EC2 + Docker)
+ # Deployment Diagram (S3 frontend + EC2 backend)
 
  ```plantuml
  @startuml
@@ -11,33 +11,36 @@
    frame "VPC" {
      cloud "Internet" as Internet
 
+     rectangle "S3 (Static Website)" as S3
+
      node "EC2 Instance (t3.medium)" as EC2 {
        component "Docker Engine" as Docker
-       container "nginx (frontend)" as NGINX
        container "backend (Spring Boot)" as BACKEND
        container "postgres:15" as POSTGRES
-       container "pgAdmin (optional)" as PGADMIN
      }
 
-     Internet --> EC2 : HTTP/HTTPS (Elastic IP)
+     Internet --> S3 : HTTP/HTTPS (CloudFront optional)
+     Internet --> EC2 : HTTP/HTTPS (Elastic IP or ALB)
    }
  }
 
  BACKEND --> POSTGRES : JDBC
- NGINX --> BACKEND : /api proxied
- NGINX --> Internet : serve SPA
+ S3 --> Internet : serve SPA
+ Browser -> S3 : GET index.html + assets
+ Browser -> BACKEND : API calls (CORS or same-origin via domain)
 
  note right of EC2
- - Docker Compose orchestrates containers
- - Elastic IP attached to EC2 for static IP
- - Optional: Certbot + nginx for HTTPS
- - Use systemd unit to start docker-compose on boot
+ - `docker-compose.yml` runs `backend` and `db` on EC2
+ - Frontend is built and deployed to S3 (no container on EC2)
+ - Use CloudFront + ACM for HTTPS + CDN (recommended)
+ - Consider RDS for managed Postgres in production
  end note
 
  @enduml
  ```
 
  Short instructions:
- - Provision EC2, allocate Elastic IP, open ports 80/443/22 (and 5050 if using pgAdmin).
- - Install Docker & docker-compose, clone repo, create `.env`, run `docker-compose up -d`.
- - Attach Elastic IP to the EC2 instance to keep a stable public IP.
+ - Create an S3 bucket for the frontend and enable static website hosting (or use CloudFront + S3 for HTTPS).
+ - Build the frontend and `aws s3 sync` the `dist/` directory into the bucket.
+ - On EC2: run Docker & `docker compose up -d` to start `backend` and `db` (compose no longer includes frontend).
+ - Point your domain to CloudFront (or S3 website endpoint) for the frontend; point API subdomain to the EC2/ALB for the backend.
