@@ -1,4 +1,4 @@
-FROM maven:3.10.1-jdk-21 as build
+FROM maven:3.10.1 as build
 WORKDIR /app
 COPY pom.xml mvnw .mvn/ ./
 COPY src ./src
