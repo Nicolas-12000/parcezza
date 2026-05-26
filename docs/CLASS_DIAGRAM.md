@@ -1,4 +1,4 @@
-# Class Diagram
+# Vista Logica (Clases Backend)
 
 ```plantuml
 @startuml
