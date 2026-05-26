@@ -177,8 +177,8 @@ npm run start
 - Backend: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
 - pgAdmin: PGADMIN_EMAIL, PGADMIN_PASSWORD
 
-## Notas y limites actuales (KISS)
+## Notas y limites actuales
 
-- No hay notificaciones en tiempo real ni panel de cocina.
+- No hay notificaciones en tiempo real
 - No hay modulo de reportes ni analitica.
 - La gestion de roles es basica (USER/ADMIN/SELLER) y se controla via API.
