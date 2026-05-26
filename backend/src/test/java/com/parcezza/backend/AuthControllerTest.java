@@ -33,7 +33,7 @@ class AuthControllerTest {
         RegisterRequest registerRequest = new RegisterRequest("login@example.com", "Login User", "password123");
         authService.register(registerRequest);
 
-        LoginRequest request = new LoginRequest("login@example.com", "password123");
+        LoginRequest request = new LoginRequest("login@example.com", "password123", false);
         AuthResponse response = authService.login(request);
 
         assertThat(response).isNotNull();

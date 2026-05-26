@@ -30,6 +30,7 @@ export class CatalogComponent implements OnInit {
   hasMore = signal(true);
   loadingMore = signal(false);
   collection = signal<string | null>(null);
+  collectionDropdownOpen = signal(false);
 
   constructor(
     private catalogService: CatalogService,
@@ -60,8 +61,29 @@ export class CatalogComponent implements OnInit {
     else queryParams.collection = null;
     this.router.navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge' });
     this.collection.set(slug);
+    this.collectionDropdownOpen.set(false);
     this.page.set(0);
     this.loadProducts(true);
+  }
+
+  toggleCollectionDropdown(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.collectionDropdownOpen.update(open => !open);
+  }
+
+  selectCollection(slug: string | null): void {
+    this.onCollectionChange(slug);
+  }
+
+  closeCollectionDropdown(): void {
+    this.collectionDropdownOpen.set(false);
+  }
+
+  getCollectionLabel(): string {
+    const selected = this.collection();
+    if (!selected) return 'Todas las colecciones';
+    return this.catalogs().find(catalog => catalog.slug === selected)?.name ?? 'Todas las colecciones';
   }
 
   loadProducts(reset: boolean = false): void {
@@ -110,6 +132,19 @@ export class CatalogComponent implements OnInit {
       this.page.update(p => p + 1);
       this.loadProducts();
     }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.collection-picker')) {
+      this.closeCollectionDropdown();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeCollectionDropdown();
   }
 
   addToCart(product: Product, event: Event): void {

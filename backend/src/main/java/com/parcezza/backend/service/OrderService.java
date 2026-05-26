@@ -8,4 +8,5 @@ public interface OrderService {
     OrderResponse checkout(CheckoutRequest request);
     OrderResponse getById(Long orderId);
     List<OrderResponse> listMyOrders();
+    OrderResponse cancel(Long orderId);
 }

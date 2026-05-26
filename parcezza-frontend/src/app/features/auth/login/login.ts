@@ -44,7 +44,8 @@ export class LoginComponent {
           Validators.maxLength(64),
           SecurityValidators.noHtmlTags()
         ]
-      ]
+      ],
+      rememberMe: [false]
     });
   }
 
@@ -61,7 +62,8 @@ export class LoginComponent {
     }
 
     this.isLoading.set(true);
-    this.authService.login(this.loginForm.value).subscribe({
+    const { email, password, rememberMe } = this.loginForm.value;
+    this.authService.login({ email, password }, !!rememberMe).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.cartService.loadCart();

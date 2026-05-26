@@ -142,6 +142,40 @@ public class OrderServiceImpl implements OrderService {
             .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
+    public OrderResponse cancel(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (!Objects.equals(order.getUser().getId(), currentUserService.getCurrentUser().getId())) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+
+        if (order.getStatus() != OrderStatus.CREATED
+            && order.getStatus() != OrderStatus.PAID
+            && order.getStatus() != OrderStatus.PROCESSING) {
+            throw new BadRequestException("Order cannot be cancelled");
+        }
+
+        order.getItems().forEach(item -> inventoryService.refund(
+            item.getProduct(),
+            item.getVariant(),
+            item.getQuantity(),
+            "ORDER",
+            order.getId()
+        ));
+
+        order.setStatus(OrderStatus.CANCELLED);
+        Shipment shipment = shipmentRepository.findByOrder(order).orElse(null);
+        if (shipment != null) {
+            shipment.setStatus(ShipmentStatus.CANCELLED);
+            shipmentRepository.save(shipment);
+        }
+
+        return toResponse(orderRepository.save(order));
+    }
+
     private OrderResponse toResponse(Order order) {
         List<OrderItemResponse> items = order.getItems().stream()
             .map(item -> new OrderItemResponse(

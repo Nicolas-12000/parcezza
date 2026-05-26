@@ -1,0 +1,8 @@
+.returns-table { width: 100%; border-collapse: collapse; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; }
+.returns-table th, .returns-table td { padding: 12px 14px; border-bottom: 1px solid var(--color-border); text-align: left; }
+.returns-table th { font-weight: 600; background: var(--color-neutral); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: var(--color-overlay); display:flex; align-items:center; justify-content:center; z-index:1200; }
+.modal { background: var(--color-surface); padding: 18px; border-radius: 12px; width: 90%; max-width: 480px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+

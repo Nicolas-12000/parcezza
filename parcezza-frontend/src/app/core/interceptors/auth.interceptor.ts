@@ -1,19 +1,19 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Check if we are in the browser before accessing localStorage
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token');
-    
-    if (token) {
-      const cloned = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      return next(cloned);
-    }
+  const authService = inject(AuthService);
+  const token = authService.getToken();
+
+  if (token) {
+    const cloned = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return next(cloned);
   }
-  
+
   return next(req);
 };

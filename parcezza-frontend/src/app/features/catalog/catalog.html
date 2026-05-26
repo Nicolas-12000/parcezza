@@ -9,30 +9,66 @@
         <p class="catalog-header__count">{{ products().length }} productos cargados</p>
       }
     </div>
-
-    <!-- Search Bar -->
     @if (!error()) {
-      <div class="search-bar animate-fade-in-up stagger-2">
-        <div class="search-bar__inner">
-          <svg class="search-bar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="search"
-            placeholder="Buscar productos..."
-            [ngModel]="searchQuery()"
-            (ngModelChange)="onSearch($event)"
-            class="search-bar__input"
-            id="catalog-search"
-          >
+      <div class="search-bar search-bar--reveal" [class.search-bar--dropdown-open]="collectionDropdownOpen()">
+        <div class="search-bar__top">
+          <div class="search-bar__inner">
+            <svg class="search-bar__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              type="search"
+              placeholder="Buscar productos..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearch($event)"
+              class="search-bar__input"
+              id="catalog-search"
+            >
+          </div>
+
+          <div class="search-bar__controls">
+            <div class="collection-picker" [class.collection-picker--open]="collectionDropdownOpen()">
+              <button
+                type="button"
+                class="collection-picker__trigger"
+                (click)="toggleCollectionDropdown($event)"
+                [attr.aria-expanded]="collectionDropdownOpen()"
+                aria-haspopup="listbox"
+              >
+                <span class="collection-picker__value">{{ getCollectionLabel() }}</span>
+                <svg class="collection-picker__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="search-bar__controls">
-          <select class="search-bar__select" [ngModel]="collection()" (ngModelChange)="onCollectionChange($event)">
-            <option [ngValue]="null">Todas las colecciones</option>
-            <option *ngFor="let c of catalogs()" [ngValue]="c.slug">{{ c.name }}</option>
-          </select>
-        </div>
+        @if (collectionDropdownOpen()) {
+          <div class="search-bar__dropdown">
+            <div class="collection-picker__menu animate-scale-in" role="listbox">
+              <button
+                type="button"
+                class="collection-picker__option"
+                [class.is-active]="collection() === null"
+                (click)="selectCollection(null)"
+              >
+                Todas las colecciones
+              </button>
+
+              @for (c of catalogs(); track c.slug) {
+                <button
+                  type="button"
+                  class="collection-picker__option"
+                  [class.is-active]="collection() === c.slug"
+                  (click)="selectCollection(c.slug)"
+                >
+                  {{ c.name }}
+                </button>
+              }
+            </div>
+          </div>
+        }
       </div>
     }
 

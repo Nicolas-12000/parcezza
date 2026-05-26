@@ -8,6 +8,7 @@ public record LoginRequest(
     @NotBlank @Email String email,
     @NotBlank 
     @Pattern(regexp = "^[\\w\\s!@#$%^&*()-+=.,]+$", message = "Invalid characters in password")
-    String password
+    String password,
+    boolean rememberMe
 ) {
 }

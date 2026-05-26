@@ -73,6 +73,12 @@ public class ReturnServiceImpl implements ReturnService {
         return toResponse(entity);
     }
 
+        @Override
+        @Transactional(readOnly = true)
+        public java.util.List<ReturnResponse> listAll() {
+            return returnRepository.findAll().stream().map(this::toResponse).toList();
+        }
+
     @Override
     @Transactional
     public ReturnResponse updateStatus(Long returnId, ReturnStatusUpdateRequest request) {

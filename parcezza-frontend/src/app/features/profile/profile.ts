@@ -26,6 +26,7 @@ export class ProfileComponent implements OnInit {
   catalogs = signal<any[]>([]);
   loadingCatalogs = signal(false);
   editingCatalog = signal<any | null>(null);
+  catalogFormOpen = signal(false);
 
   loadingProfile = signal(true);
   loadingOrders = signal(true);
@@ -173,11 +174,19 @@ export class ProfileComponent implements OnInit {
   openNewCatalogForm(): void {
     this.editingCatalog.set(null);
     this.catalogForm.reset();
+    this.catalogFormOpen.set(true);
   }
 
   editCatalog(catalog: any): void {
     this.editingCatalog.set(catalog);
     this.catalogForm.patchValue({ name: catalog.name, slug: catalog.slug });
+    this.catalogFormOpen.set(true);
+  }
+
+  closeCatalogForm(): void {
+    this.editingCatalog.set(null);
+    this.catalogFormOpen.set(false);
+    this.catalogForm.reset();
   }
 
   saveCatalog(): void {
@@ -190,6 +199,8 @@ export class ProfileComponent implements OnInit {
           this.toastService.success('Catálogo actualizado');
           this.loadCatalogs();
           this.editingCatalog.set(null);
+          this.catalogFormOpen.set(false);
+          this.catalogForm.reset();
         },
         error: (err) => this.toastService.error(err.error?.message || 'Error al actualizar catálogo')
       });
@@ -198,7 +209,7 @@ export class ProfileComponent implements OnInit {
         next: (c) => {
           this.toastService.success('Catálogo creado');
           this.loadCatalogs();
-          this.catalogForm.reset();
+          this.closeCatalogForm();
         },
         error: (err) => this.toastService.error(err.error?.message || 'Error al crear catálogo')
       });

@@ -1,0 +1,73 @@
+<div class="admin-returns">
+  <div class="container">
+    <h2>Devoluciones</h2>
+    @if (loading()) {
+      <div>Loading…</div>
+    } @else {
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px;">
+        <input type="search" placeholder="Buscar ID, pedido, motivo..." [(ngModel)]="searchTerm" />
+        <div style="display:flex; gap:8px; align-items:center;">
+          <label>Mostrar por página</label>
+          <select [(ngModel)]="pageSize">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+          </select>
+        </div>
+      </div>
+
+      <table class="returns-table">
+        <thead>
+          <tr><th>ID</th><th>Pedido</th><th>Estado</th><th>Motivo</th><th>Nota</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          @for (r of pageItems(); track r.id) {
+            <tr>
+              <td>{{ r.id }}</td>
+              <td>{{ r.orderId }}</td>
+              <td>{{ r.status }}</td>
+              <td>{{ r.reason }}</td>
+              <td><input type="text" [ngModel]="noteById.get(r.id) || ''" (ngModelChange)="noteById.set(r.id, $event)" /></td>
+              <td>
+                @if (r.status === 'REQUESTED') {
+                  <button class="btn-primary btn-sm" (click)="confirmUpdate(r.id, 'APPROVED')">Aprobar</button>
+                  <button class="btn-ghost btn-sm" (click)="confirmUpdate(r.id, 'REJECTED')">Rechazar</button>
+                } @else if (r.status === 'APPROVED') {
+                  <button class="btn-primary btn-sm" (click)="confirmUpdate(r.id, 'RECEIVED')">Marcar como Recibido</button>
+                } @else if (r.status === 'RECEIVED') {
+                  <button class="btn-danger btn-sm" (click)="confirmUpdate(r.id, 'REFUNDED')">Reembolsar</button>
+                } @else {
+                  <span class="muted">N/A</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+        <div>
+          Página {{ page() }} de {{ pageCount }} — {{ filtered.length }} resultados
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-ghost btn-sm" (click)="goToPage(page() - 1)">Anterior</button>
+          <button class="btn-ghost btn-sm" (click)="goToPage(page() + 1)">Siguiente</button>
+        </div>
+      </div>
+
+      <!-- Confirm modal -->
+      @if (pendingAction()) {
+        <div class="modal-overlay">
+          <div class="modal">
+            <h4>Confirmar acción</h4>
+            <p>¿Está seguro que desea <strong>{{ pendingAction()!.status }}</strong> la devolución #{{ pendingAction()!.id }}?</p>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+              <button class="btn-ghost" (click)="cancelPending()">Cancelar</button>
+              <button class="btn-primary" (click)="performUpdate()">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -9,6 +9,9 @@ export interface AuthResponse {
   tokenType: string;
 }
 
+const ACCESS_TOKEN_KEY = 'access_token';
+const ACCESS_TOKEN_PERSIST_KEY = 'access_token_persist';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -24,15 +27,15 @@ export class AuthService {
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      this.isAuthenticated.set(this.hasToken());
-    }
+    this.restoreAuthState();
   }
 
-  login(credentials: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
+  login(credentials: any, rememberMe = false): Observable<AuthResponse> {
+    const body = { ...credentials, rememberMe };
+
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, body).pipe(
       tap(response => {
-        this.setToken(response.accessToken);
+        this.setToken(response.accessToken, rememberMe);
         this.isAuthenticated.set(true);
       })
     );
@@ -41,7 +44,7 @@ export class AuthService {
   register(details: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, details).pipe(
       tap(response => {
-        this.setToken(response.accessToken);
+        this.setToken(response.accessToken, false);
         this.isAuthenticated.set(true);
       })
     );
@@ -49,22 +52,78 @@ export class AuthService {
 
   logout(): void {
     if (this.isBrowser) {
-      localStorage.removeItem('access_token');
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(ACCESS_TOKEN_PERSIST_KEY);
     }
     this.isAuthenticated.set(false);
   }
 
   getToken(): string | null {
-    return this.isBrowser ? localStorage.getItem('access_token') : null;
+    if (!this.isBrowser) {
+      return null;
+    }
+
+    const token = sessionStorage.getItem(ACCESS_TOKEN_KEY) ?? localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!token) {
+      this.isAuthenticated.set(false);
+      return null;
+    }
+
+    if (this.isTokenExpired(token)) {
+      this.logout();
+      return null;
+    }
+
+    return token;
   }
 
-  private setToken(token: string): void {
-    if (this.isBrowser) {
-      localStorage.setItem('access_token', token);
+  private setToken(token: string, rememberMe: boolean): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+
+    if (rememberMe) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+      localStorage.setItem(ACCESS_TOKEN_PERSIST_KEY, 'true');
+    } else {
+      sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
+      localStorage.removeItem(ACCESS_TOKEN_PERSIST_KEY);
     }
   }
 
-  private hasToken(): boolean {
-    return this.isBrowser ? !!localStorage.getItem('access_token') : false;
+  private restoreAuthState(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    this.isAuthenticated.set(!!this.getToken());
+  }
+
+  private isTokenExpired(token: string): boolean {
+    const payload = this.decodePayload(token);
+    if (!payload?.exp) {
+      return true;
+    }
+
+    return Date.now() >= payload.exp * 1000;
+  }
+
+  private decodePayload(token: string): { exp?: number } | null {
+    try {
+      const payloadPart = token.split('.')[1];
+      if (!payloadPart) {
+        return null;
+      }
+
+      const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+      return JSON.parse(atob(padded));
+    } catch {
+      return null;
+    }
   }
 }

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private static final String DEFAULT_ROLE = "ROLE_USER";
+    private static final long REMEMBER_ME_EXPIRATION_MS = 7L * 24 * 60 * 60 * 1000;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -70,7 +71,9 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.email())
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        String token = jwtService.generateToken(new UserPrincipal(user));
+        String token = request.rememberMe()
+            ? jwtService.generateToken(new UserPrincipal(user), REMEMBER_ME_EXPIRATION_MS)
+            : jwtService.generateToken(new UserPrincipal(user));
         return new AuthResponse(token);
     }
 }

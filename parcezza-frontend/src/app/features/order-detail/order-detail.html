@@ -1,0 +1,111 @@
+<div class="order-detail-page">
+  <div class="container">
+    @if (loading()) {
+      <div class="spinner loading-spinner"></div>
+    } @else if (order()) {
+      <div class="card order-header">
+        <div>
+          <h2>Pedido #{{ order()!.id }}</h2>
+          <div class="meta">{{ order()!.createdAt | date:'mediumDate' }} • {{ order()!.items.length }} producto{{ order()!.items.length > 1 ? 's' : '' }}</div>
+        </div>
+        <div class="order-header__right">
+          <span class="badge" [class]="getOrderStatusClass(order()!.status)">{{ getOrderStatusLabel(order()!.status) }}</span>
+          <div class="order-total">{{ order()!.totalAmount | currency: order()!.currency }}</div>
+          @if (canCancelOrder()) {
+            <button class="btn-ghost btn-sm order-action-cancel" (click)="openCancelConfirm()">Cancelar Pedido</button>
+          }
+        </div>
+      </div>
+
+      <div class="card order-items">
+        <h3>Artículos</h3>
+        <ul class="order-items__list">
+          @for (item of order()!.items; track item.id) {
+            <li class="order-item-row">
+              <input type="checkbox" class="order-item-row__check" [checked]="selectedItems()[item.id]" (change)="toggleItem(item.id)" />
+              <div class="order-item-row__thumb">
+                <div class="order-item-row__initial">{{ (item.productName || ('' + item.productId))?.charAt(0)?.toUpperCase() }}</div>
+              </div>
+              <div class="order-item-row__meta">
+                <div class="order-item-row__title">{{ item.productName || ('Producto ' + item.productId) }}</div>
+                <div class="order-item-row__subtitle">x{{ item.quantity }}</div>
+              </div>
+              <div class="order-item-row__price">{{ item.unitPrice | currency: order()!.currency }}</div>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="card order-actions">
+        @if (returnInfo()) {
+          <div class="return-info">
+            <h4>Solicitud de devolución</h4>
+            <p><strong>Estado:</strong> {{ returnInfo()!.status }}</p>
+            <p><strong>Motivo:</strong> {{ returnInfo()!.reason }}</p>
+            @if (returnInfo()!.note) { <p><strong>Nota:</strong> {{ returnInfo()!.note }}</p> }
+            <p class="muted">Solicitada: {{ returnInfo()!.createdAt | date:'medium' }}</p>
+          </div>
+        } @else {
+          @if (canRequestReturn()) {
+            <div class="return-form">
+              <label>Seleccione los artículos a devolver</label>
+              <div class="reasons">
+                <label>Motivos rápidos</label>
+                <div class="return-reasons">
+                  @for (r of ['Producto dañado','Artículo incorrecto','Talla incorrecta','Cambió de opinión']; track r) {
+                    <button type="button" class="reason-btn" (click)="selectedReason.set(r)" [class.active]="selectedReason() === r">{{ r }}</button>
+                  }
+                </div>
+              </div>
+
+              <div class="other-reason">
+                <label>Otro motivo (opcional)</label>
+                <textarea [ngModel]="otherReason()" (ngModelChange)="otherReason.set($event)" rows="3" placeholder="Describa el motivo..."></textarea>
+              </div>
+
+              <div class="return-form__actions">
+                <button class="btn-primary" (click)="prepareSubmit()" [disabled]="requesting()">
+                  @if (requesting()) { <span class="spinner small"></span> } Solicitar Devolución
+                </button>
+                <button class="btn-ghost" (click)="router.navigate(['/profile'])">Volver</button>
+              </div>
+            </div>
+          } @else {
+            <div class="muted">Las devoluciones se habilitan cuando el pedido esta en estado Entregado.</div>
+          }
+        }
+      </div>
+
+      <!-- Confirm modal -->
+      @if (showConfirm()) {
+        <div class="modal-overlay">
+          <div class="modal">
+            <h4>Confirmar solicitud</h4>
+            <div class="confirm-summary">
+              @for (line of confirmLines(); track line.label) {
+                <div class="confirm-summary__row"><div class="confirm-summary__k">{{line.label}}</div><div class="confirm-summary__v">{{line.value}}</div></div>
+              }
+            </div>
+            <div class="modal-actions">
+              <button class="btn-ghost" (click)="showConfirm.set(false)">Cancelar</button>
+              <button class="btn-primary" (click)="submitReturnConfirmed()">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (showCancelConfirm()) {
+        <div class="modal-overlay">
+          <div class="modal">
+            <h4>Cancelar pedido</h4>
+            <p>Esta accion cancelara el pedido y revertira el stock. Desea continuar?</p>
+            <div class="modal-actions">
+              <button class="btn-ghost" (click)="showCancelConfirm.set(false)">Volver</button>
+              <button class="btn-primary" (click)="cancelOrderConfirmed()">Confirmar</button>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -36,6 +36,12 @@ public class ReturnController {
         return ResponseEntity.ok(returnService.getByOrder(orderId));
     }
 
+    @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<java.util.List<ReturnResponse>> listAll() {
+        return ResponseEntity.ok(returnService.listAll());
+    }
+
     @PatchMapping("/{returnId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReturnResponse> updateStatus(@PathVariable Long returnId,

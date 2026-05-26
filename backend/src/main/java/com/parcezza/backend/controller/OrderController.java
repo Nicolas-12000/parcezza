@@ -6,6 +6,7 @@ import com.parcezza.backend.service.OrderService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,5 +37,10 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> get(@PathVariable Long orderId) {
         return ResponseEntity.ok(orderService.getById(orderId));
+    }
+
+    @PatchMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderResponse> cancel(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderService.cancel(orderId));
     }
 }

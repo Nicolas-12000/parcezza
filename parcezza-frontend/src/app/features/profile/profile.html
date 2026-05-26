@@ -94,6 +94,9 @@
                   <span class="order-item__items">{{ order.items.length }} producto{{ order.items.length > 1 ? 's' : '' }}</span>
                   <span class="order-item__total">{{ order.totalAmount | currency: order.currency }}</span>
                 </div>
+                <div class="order-item__actions">
+                  <a [routerLink]="['/order', order.id]" class="btn-ghost btn-sm">Ver Detalle</a>
+                </div>
                 @if (order.trackingCode) {
                   <div class="order-item__tracking">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -352,52 +355,117 @@
     <!-- Admin Panel Tab -->
     @if (activeTab() === 'admin' && isAdmin()) {
       <div class="profile-section animate-fade-in">
-        <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Panel de Administración</h3>
+        <div class="admin-panel-hero card">
+          <span class="section-label">Backoffice</span>
+          <h3>Panel de Administración</h3>
+          <p>Gestiona catálogos, revisa solicitudes y mantén ordenada la estructura de la tienda desde un solo lugar.</p>
+          <div style="display:flex; gap:8px; margin-top: 12px;">
+            <a class="btn-ghost btn-sm" [routerLink]="['/admin/returns']">Gestionar devoluciones</a>
+          </div>
+        </div>
 
         <!-- Catalog Management -->
-        <div class="card" style="padding: 16px; margin-bottom: 16px;">
-          <h4>Gestión de Catálogos</h4>
-          <p style="margin: 8px 0 12px; color: var(--color-neutral-dark);">Crea, edita o elimina colecciones que agrupan productos.</p>
+        <div class="admin-catalogs card">
+          <div class="admin-catalogs__header">
+            <div>
+              <span class="section-label">Gestión de Catálogos</span>
+              <h4>Catálogos y colecciones</h4>
+              <p>Crea, edita o elimina colecciones que agrupan productos.</p>
+            </div>
+          </div>
 
-          <form [formGroup]="catalogForm" (ngSubmit)="saveCatalog()" style="display:flex; gap:8px; align-items:center;">
-            <input formControlName="name" placeholder="Nombre del catálogo" />
-            <input formControlName="slug" placeholder="slug-coleccion" />
-            <button class="btn-primary btn-sm" type="submit">{{ editingCatalog() ? 'Actualizar' : 'Crear' }}</button>
-            <button type="button" class="btn-ghost btn-sm" (click)="openNewCatalogForm()">Nuevo</button>
-          </form>
+          <div class="admin-catalogs__stats">
+            <div class="admin-stat">
+              <span>colecciones</span>
+              <strong>{{ catalogs().length }}</strong>
+            </div>
+            <div class="admin-stat">
+              <span>estado</span>
+              <strong>{{ catalogFormOpen() ? (editingCatalog() ? 'Editando' : 'Creando') : 'Tabla activa' }}</strong>
+            </div>
+            <div class="admin-stat">
+              <span>editor</span>
+              <strong>{{ editingCatalog() ? editingCatalog().name : 'Sin selección' }}</strong>
+            </div>
+          </div>
 
-          <div style="margin-top:12px;">
+          @if (catalogFormOpen() || editingCatalog()) {
+            <div class="admin-catalogs__editor">
+              <div class="admin-catalogs__editor-header">
+                <div>
+                  <span class="section-label">{{ editingCatalog() ? 'Editar colección' : 'Nueva colección' }}</span>
+                  <h4>{{ editingCatalog() ? 'Ajusta los datos del catálogo' : 'Crea una colección limpia y ordenada' }}</h4>
+                </div>
+                <button type="button" class="admin-link-button" (click)="closeCatalogForm()">Cerrar</button>
+              </div>
+
+              <form class="admin-catalogs__form" [formGroup]="catalogForm" (ngSubmit)="saveCatalog()">
+                <label class="admin-field">
+                  <span>Nombre del catálogo</span>
+                  <input formControlName="name" placeholder="Electrónicos populares" />
+                </label>
+
+                <label class="admin-field">
+                  <span>Slug</span>
+                  <input formControlName="slug" placeholder="slug-coleccion" />
+                </label>
+
+                <div class="admin-catalogs__actions">
+                  <button class="btn-primary btn-sm" type="submit">{{ editingCatalog() ? 'Actualizar' : 'Crear' }}</button>
+                  <button type="button" class="btn-ghost btn-sm" (click)="closeCatalogForm()">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          } @else {
+            <div class="admin-catalogs__toolbar">
+              <button class="btn-primary btn-sm" type="button" (click)="openNewCatalogForm()">Crear colección</button>
+            </div>
+          }
+
+          <div class="admin-catalogs__table-wrap">
             @if (loadingCatalogs()) {
-              <div class="spinner" style="width:20px; height:20px;"></div>
+              <div class="admin-catalogs__loading">
+                <div class="spinner" style="width:20px; height:20px;"></div>
+              </div>
             } @else if (catalogs().length > 0) {
-              <table style="width:100%; margin-top:8px; border-collapse:collapse;">
+              <table class="admin-catalogs__table">
                 <thead>
                   <tr style="text-align:left;">
                     <th>Nombre</th>
-                    <th>Slug</th>
+                    <th class="admin-catalogs__slug-header">Slug</th>
                     <th style="text-align:right;">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (cat of catalogs(); track cat.id) {
                     <tr>
-                      <td>{{ cat.name }}</td>
-                      <td>{{ cat.slug }}</td>
-                      <td style="text-align:right;">
-                        <button class="btn-ghost btn-sm" (click)="editCatalog(cat)">Editar</button>
-                        <button class="btn-outline btn-sm" (click)="deleteCatalog(cat.id)" style="color:var(--color-danger);">Eliminar</button>
+                      <td class="admin-catalogs__name">{{ cat.name }}</td>
+                      <td class="admin-catalogs__slug-cell"><span class="admin-catalogs__slug">{{ cat.slug }}</span></td>
+                      <td class="admin-catalogs__actions-cell">
+                        <button class="admin-link-button" (click)="editCatalog(cat)">Editar</button>
+                        <button class="admin-icon-button admin-icon-button--danger" (click)="deleteCatalog(cat.id)" aria-label="Eliminar catálogo">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6l-1 14H6L5 6"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                            <path d="M9 6V4h6v2"></path>
+                          </svg>
+                        </button>
                       </td>
                     </tr>
                   }
                 </tbody>
               </table>
             } @else {
-              <p style="opacity:0.8;">No hay catálogos registrados.</p>
+              <div class="admin-catalogs__empty">
+                <p>No hay catálogos registrados.</p>
+              </div>
             }
           </div>
         </div>
 
-        <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Solicitudes de Vendedor Pendientes</h3>
+        <h3 style="font-family: var(--font-display); margin: 24px 0 16px;">Solicitudes de Vendedor Pendientes</h3>
 
         @if (loadingAdmin()) {
           <div style="text-align: center; padding: 2rem;">
