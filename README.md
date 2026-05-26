@@ -2,6 +2,8 @@
 
 Plataforma de ecommerce para restaurantes con backend robusto en Spring Boot y frontend moderno en Angular. Este repo incluye la API, la SPA y el despliegue con Docker Compose para levantar todo el stack en un solo servidor.
 
+Este repositorio sirve como proyecto final para la materia "Programación Orientada a Objetos"; contiene ejemplos de diseño por capas, modelos de dominio, y patrones de servicio/Repositorio que son útiles como referencia académica.
+
 ## Stack
 
 - Backend: Java 21, Spring Boot 4.0.5, Spring Security (JWT), Spring Data JPA, Flyway
