@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Docker Compose automatically loads a .env file in the same directory.
 
 services:
