@@ -1,0 +1,9 @@
+node_modules
+dist
+target
+.git
+.idea
+.vscode
+.m2
+npm-debug.log
+docker-compose.override.yml
