@@ -6,4 +6,5 @@ import com.parcezza.backend.dto.shipment.ShipmentStatusRequest;
 public interface ShipmentService {
     ShipmentResponse getByOrder(Long orderId);
     ShipmentResponse updateStatus(Long shipmentId, ShipmentStatusRequest request);
+    java.util.List<ShipmentResponse> listAll();
 }

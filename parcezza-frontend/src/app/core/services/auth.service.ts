@@ -75,6 +75,11 @@ export class AuthService {
       return null;
     }
 
+    // Keep signal state in sync with persisted token state.
+    if (!this.isAuthenticated()) {
+      this.isAuthenticated.set(true);
+    }
+
     return token;
   }
 

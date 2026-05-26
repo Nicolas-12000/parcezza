@@ -79,6 +79,12 @@ public class ShipmentServiceImpl implements ShipmentService {
         return toResponse(shipmentRepository.save(shipment));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<ShipmentResponse> listAll() {
+        return shipmentRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
     private boolean isValidTransition(ShipmentStatus current, ShipmentStatus target) {
         return switch (current) {
             case PENDING -> target == ShipmentStatus.SHIPPED || target == ShipmentStatus.CANCELLED;

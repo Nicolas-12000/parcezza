@@ -1,0 +1,112 @@
+<div class="admin-shipments">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="admin-shipments__header">
+      <div>
+        <span class="section-label">Backoffice</span>
+        <h2 class="admin-shipments__title">Envíos</h2>
+      </div>
+      <div class="admin-shipments__header-actions">
+        <button class="btn-ghost btn-sm" (click)="goToReturns()">Ir a Devoluciones</button>
+        <button class="btn-ghost btn-sm" (click)="goBack()">Volver atrás</button>
+      </div>
+      @if (!loading()) {
+        <span class="admin-shipments__count">{{ shipments().length }} envíos</span>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="admin-shipments__loading">
+        <div class="spinner" style="width:32px; height:32px;"></div>
+      </div>
+    } @else {
+
+      <div class="returns-table-wrap">
+        <table class="returns-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Pedido</th>
+              <th>Estado</th>
+              <th>Tracking</th>
+              <th style="text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of pageItems(); track s.id) {
+              <tr>
+                <td class="returns-table__id">#{{ s.id }}</td>
+                <td class="returns-table__order">
+                  @if (s.orderId && s.orderId !== s.id) {
+                    #{{ s.orderId }}
+                  } @else {
+                    <span class="admin-catalogs__slug">—</span>
+                  }
+                </td>
+                <td>
+                  <span [ngClass]="['badge', getShipmentStatusClass(s.status)]">
+                    {{ getShipmentStatusLabel(s.status) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="admin-catalogs__slug">{{ s.trackingCode || '—' }}</span>
+                </td>
+                <td class="returns-table__actions">
+                  @if (s.status === 'PENDING') {
+                    <button class="btn-ghost btn-sm" (click)="confirmUpdate(s.id, 'SHIPPED')">
+                      Marcar Enviado
+                    </button>
+                  }
+                  @if (s.status === 'SHIPPED') {
+                    <button class="btn-ghost btn-sm" (click)="confirmUpdate(s.id, 'IN_TRANSIT')">
+                      En Tránsito
+                    </button>
+                  }
+                  @if (s.status === 'IN_TRANSIT') {
+                    <button class="btn-primary btn-sm" (click)="confirmUpdate(s.id, 'DELIVERED')">
+                      Marcar Entregado
+                    </button>
+                  }
+                  @if (s.status === 'DELIVERED' || s.status === 'CANCELLED') {
+                    <span class="returns-table__na">Procesado</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="admin-returns__pagination">
+        <span class="admin-returns__pagination-info">
+          Página {{ page() }} de {{ pageCount }}
+        </span>
+        <div class="admin-returns__pagination-controls">
+          <button class="btn-ghost btn-sm" [disabled]="page() === 1" (click)="goToPage(page() - 1)">← Anterior</button>
+          <button class="btn-ghost btn-sm" [disabled]="page() === pageCount" (click)="goToPage(page() + 1)">Siguiente →</button>
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <!-- Modal -->
+  @if (pendingAction()) {
+    <div class="modal-overlay" (click)="cancelPending()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h4 class="modal__title">Confirmar acción</h4>
+        <p class="modal__body">
+          ¿Confirma que desea cambiar el estado del envío
+          <strong>#{{ pendingAction()!.id }}</strong> a
+          <strong>{{ getShipmentStatusLabel(pendingAction()!.status) }}</strong>?
+        </p>
+        <div class="modal__actions">
+          <button class="btn-ghost" (click)="cancelPending()">Cancelar</button>
+          <button class="btn-primary" (click)="performUpdate()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

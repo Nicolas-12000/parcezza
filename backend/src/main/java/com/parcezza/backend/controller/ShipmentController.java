@@ -28,6 +28,12 @@ public class ShipmentController {
         return ResponseEntity.ok(shipmentService.getByOrder(orderId));
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<java.util.List<ShipmentResponse>> listAll() {
+        return ResponseEntity.ok(shipmentService.listAll());
+    }
+
     @PatchMapping("/{shipmentId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ShipmentResponse> updateStatus(@PathVariable Long shipmentId,

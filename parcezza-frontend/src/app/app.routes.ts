@@ -43,6 +43,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'admin/shipments',
+    loadComponent: () => import('./features/admin-shipments/admin-shipments').then(m => m.AdminShipmentsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: ''
   }

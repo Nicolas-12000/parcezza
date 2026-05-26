@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ReturnsService } from '../../core/services/returns.service';
 import { ReturnResponse, ReturnStatus } from '../../core/models/return.model';
 import { ToastService } from '../../core/services/toast.service';
@@ -39,7 +40,7 @@ export class AdminReturnsComponent implements OnInit {
     return this.filtered.slice(start, start + this.pageSize);
   }
 
-  constructor(private returnsService: ReturnsService, private toast: ToastService) {}
+  constructor(private returnsService: ReturnsService, private toast: ToastService, private router: Router) {}
 
   ngOnInit(): void {
     this.load();
@@ -59,6 +60,28 @@ export class AdminReturnsComponent implements OnInit {
 
   cancelPending() {
     this.pendingAction.set(null);
+  }
+
+  getReturnStatusClass(status: ReturnStatus): string {
+    switch (status) {
+      case 'REQUESTED': return 'badge-warning';
+      case 'APPROVED': return 'badge-success';
+      case 'RECEIVED': return 'badge-neutral';
+      case 'REFUNDED': return 'badge-danger';
+      case 'REJECTED': return 'badge-danger';
+      default: return 'badge-neutral';
+    }
+  }
+
+  getReturnStatusLabel(status: ReturnStatus): string {
+    switch (status) {
+      case 'REQUESTED': return 'Solicitada';
+      case 'APPROVED': return 'Aprobada';
+      case 'RECEIVED': return 'Recibido';
+      case 'REFUNDED': return 'Reembolsada';
+      case 'REJECTED': return 'Rechazada';
+      default: return status;
+    }
   }
 
   performUpdate() {
@@ -81,5 +104,13 @@ export class AdminReturnsComponent implements OnInit {
     if (n < 1) n = 1;
     if (n > this.pageCount) n = this.pageCount;
     this.page.set(n);
+  }
+
+  goBack() {
+    window.history.back();
+  }
+
+  goToShipments() {
+    this.router.navigate(['/admin/shipments']);
   }
 }
