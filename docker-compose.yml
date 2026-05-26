@@ -1,7 +1,6 @@
 version: '3.8'
 
-# Load environment variables from .env at repo root (copy .env.example -> .env)
-env_file: .env
+# Docker Compose automatically loads a .env file in the same directory.
 
 services:
   backend:
