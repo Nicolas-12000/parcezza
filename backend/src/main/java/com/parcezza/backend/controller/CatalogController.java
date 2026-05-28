@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/catalogs")
 public class CatalogController {
 
+    // Controlador REST para gestionar catálogos y su relación con productos
+
     private final CatalogService catalogService;
 
     public CatalogController(CatalogService catalogService) {

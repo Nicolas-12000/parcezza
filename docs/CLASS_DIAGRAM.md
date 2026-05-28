@@ -3,183 +3,170 @@
 ```plantuml
 @startuml
 skinparam classAttributeIconSize 0
+# Vista Logica (Clases Backend)
 
-package "controller" {
-  class AuthController
-  class ProductController
-  class ProductVariantController
-  class SellerController
-  class CatalogController
-  class ProfileController
-  class CartController
-  class OrderController
-  class PaymentController
-  class ShipmentController
-  class ReturnController
-}
-
-package "service" {
-  interface AuthService
-  class AuthServiceImpl
-  interface ProductService
-  class ProductServiceImpl
-  interface ProductVariantService
-  class ProductVariantServiceImpl
-  interface SellerService
-  class SellerServiceImpl
-  interface CatalogService
-  class CatalogServiceImpl
-  interface ProfileService
-  class ProfileServiceImpl
-  interface CartService
-  class CartServiceImpl
-  interface OrderService
-  class OrderServiceImpl
-  interface PaymentService
-  class PaymentServiceImpl
-  interface ShipmentService
-  class ShipmentServiceImpl
-  interface InventoryService
-  class InventoryServiceImpl
-  interface ReturnService
-  class ReturnServiceImpl
-}
-
-package "service.payment" {
-  interface CardValidator
-  class LuhnCardValidator
-}
-
-package "security" {
-  class JwtAuthenticationFilter
-  class JwtServiceImpl
-  interface JwtService
-  class JwtProperties
-  class UserDetailsServiceImpl
-  class UserPrincipal
-  class CurrentUserService
-}
-
-package "repository" {
-  interface UserRepository
-  interface RoleRepository
-  interface SellerRepository
-  interface ProductRepository
-  interface ProductVariantRepository
-  interface VariantAttributeRepository
-  interface CatalogRepository
-  interface AddressRepository
-  interface CartRepository
-  interface CartItemRepository
-  interface OrderRepository
-  interface OrderItemRepository
-  interface PaymentRepository
-  interface ShipmentRepository
-  interface InventoryMovementRepository
-  interface ReturnRequestRepository
-}
+```plantuml
+@startuml
+skinparam classAttributeIconSize 0
 
 package "domain" {
-  class User
-  class Role
-  class Address
-  class Seller
-  class Product
-  class ProductVariant
-  class VariantAttribute
-  class Catalog
-  class Cart
-  class CartItem
-  class Order
-  class OrderItem
-  class Payment
-  class Shipment
-  class InventoryMovement
-  class ReturnRequest
-  class Auditable
+  class Auditable {
+    - String createdBy
+    - Instant createdAt
+    - Instant updatedAt
+  }
+
+  class User {
+    - Long id
+    - String email
+    - String fullName
+    - Boolean enabled
+    - String passwordHash
+    - Set<Role> roles
+    - List<Address> addresses
+    - Instant createdAt
+    - Instant updatedAt
+  }
+
+  class Role {
+    - Long id
+    - String roleName
+  }
+
+  class Address {
+    - Long id
+    - String line1
+    - String line2
+    - String postalCode
+    - String administrativeArea
+    - String administrativeAreaCode
+    - String country
+    - boolean primaryFlag
+  }
+
+  class Seller {
+    - Long id
+    - User owner
+    - String companyName
+    - String contactEmail
+    - String taxId
+    - SellerStatus status
+    - String logoUrl
+    - Instant createdAt
+    - Instant updatedAt
+  }
+
+  class Product {
+    - Long id
+    - String sku
+    - String name
+    - String description
+    - BigDecimal basePrice
+    - Integer stock
+    - String currency
+    - boolean active
+    - Seller seller
+  }
+
+  class ProductVariant {
+    - Long id
+    - Product product
+    - String sku
+    - BigDecimal priceOverride
+    - Integer stock
+  }
+
+  class VariantAttribute {
+    - Long id
+    - ProductVariant variant
+    - String name
+    - String value
+  }
+
+  class Catalog {
+    - Long id
+    - String name
+    - String slug
+    - List<Product> products
+  }
+
+  class Cart {
+    - Long id
+    - User user
+    - List<CartItem> items
+  }
+
+  class CartItem {
+    - Long id
+    - Cart cart
+    - Product product
+    - ProductVariant variant
+    - Integer quantity
+    - BigDecimal unitPrice
+    - String currency
+    - BigDecimal lineTotal
+    - Instant reservedUntil
+  }
+
+  class Order {
+    - Long id
+    - User user
+    - Address shippingAddress
+    - OrderStatus status
+    - BigDecimal totalAmount
+    - String currency
+  }
+
+  class OrderItem {
+    - Long id
+    - Order order
+    - Product product
+    - ProductVariant variant
+    - Integer quantity
+    - BigDecimal unitPrice
+    - String currency
+    - BigDecimal lineTotal
+  }
+
+  class Payment {
+    - Long id
+    - Order order
+    - PaymentStatus status
+    - String provider
+    - String providerRef
+    - String cardLast4
+    - BigDecimal amount
+    - String currency
+  }
+
+  class Shipment {
+    - Long id
+    - Order order
+    - ShipmentStatus status
+    - String trackingCode
+  }
+
+  class ReturnRequest {
+    - Long id
+    - Order order
+    - ReturnStatus status
+    - String reason
+    - String note
+  }
+
+  class InventoryMovement {
+    - Long id
+    - Product product
+    - ProductVariant variant
+    - InventoryMovementType type
+    - Integer quantity
+    - String referenceType
+    - Long referenceId
+  }
+
 }
 
-' Relationships - layers
-AuthController --> AuthService
-ProductController --> ProductService
-ProductVariantController --> ProductVariantService
-SellerController --> SellerService
-CatalogController --> CatalogService
-ProfileController --> ProfileService
-CartController --> CartService
-OrderController --> OrderService
-PaymentController --> PaymentService
-ShipmentController --> ShipmentService
-ReturnController --> ReturnService
-
-AuthServiceImpl ..|> AuthService
-ProductServiceImpl ..|> ProductService
-ProductVariantServiceImpl ..|> ProductVariantService
-SellerServiceImpl ..|> SellerService
-CatalogServiceImpl ..|> CatalogService
-ProfileServiceImpl ..|> ProfileService
-CartServiceImpl ..|> CartService
-OrderServiceImpl ..|> OrderService
-PaymentServiceImpl ..|> PaymentService
-ShipmentServiceImpl ..|> ShipmentService
-InventoryServiceImpl ..|> InventoryService
-ReturnServiceImpl ..|> ReturnService
-
-AuthServiceImpl --> UserRepository
-AuthServiceImpl --> RoleRepository
-AuthServiceImpl --> JwtService
-AuthServiceImpl --> CurrentUserService
-ProductServiceImpl --> ProductRepository
-ProductServiceImpl --> SellerRepository
-ProductServiceImpl --> CurrentUserService
-ProductVariantServiceImpl --> ProductRepository
-ProductVariantServiceImpl --> ProductVariantRepository
-ProductVariantServiceImpl --> CurrentUserService
-SellerServiceImpl --> SellerRepository
-SellerServiceImpl --> RoleRepository
-SellerServiceImpl --> UserRepository
-SellerServiceImpl --> CurrentUserService
-CatalogServiceImpl --> CatalogRepository
-CatalogServiceImpl --> ProductRepository
-ProfileServiceImpl --> UserRepository
-ProfileServiceImpl --> AddressRepository
-ProfileServiceImpl --> CurrentUserService
-CartServiceImpl --> CartRepository
-CartServiceImpl --> CartItemRepository
-CartServiceImpl --> ProductRepository
-CartServiceImpl --> ProductVariantRepository
-CartServiceImpl --> CurrentUserService
-OrderServiceImpl --> CartRepository
-OrderServiceImpl --> CartItemRepository
-OrderServiceImpl --> OrderRepository
-OrderServiceImpl --> ShipmentRepository
-OrderServiceImpl --> AddressRepository
-OrderServiceImpl --> CurrentUserService
-PaymentServiceImpl --> OrderRepository
-PaymentServiceImpl --> PaymentRepository
-PaymentServiceImpl --> CurrentUserService
-PaymentServiceImpl --> CardValidator
-ShipmentServiceImpl --> ShipmentRepository
-ShipmentServiceImpl --> OrderRepository
-ShipmentServiceImpl --> CurrentUserService
-InventoryServiceImpl --> InventoryMovementRepository
-InventoryServiceImpl --> ProductRepository
-InventoryServiceImpl --> ProductVariantRepository
-ReturnServiceImpl --> OrderRepository
-ReturnServiceImpl --> ReturnRequestRepository
-ReturnServiceImpl --> PaymentService
-ReturnServiceImpl --> CurrentUserService
-
-JwtAuthenticationFilter --> JwtService
-JwtAuthenticationFilter --> UserDetailsServiceImpl
-UserDetailsServiceImpl --> UserRepository
-CurrentUserService --> UserRepository
-JwtServiceImpl ..|> JwtService
-JwtServiceImpl --> JwtProperties
-UserPrincipal --> User
-LuhnCardValidator ..|> CardValidator
-
-' Relationships - domain
+' Domain relationships
 User "1" -- "0..*" Address
 User "*" -- "*" Role
 Seller "*" --> "1" User : owner
@@ -208,3 +195,4 @@ Auditable <|-- ReturnRequest
 
 @enduml
 ```
+Payment "*" --> "1" Order

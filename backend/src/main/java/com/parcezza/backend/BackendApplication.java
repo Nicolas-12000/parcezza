@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")
 public class BackendApplication {
 
+	// Clase principal de la aplicación Spring Boot
+	// Ejecuta el contexto de Spring y carga variables desde .env si existen
 	public static void main(String[] args) {
 		loadDotenvIntoSystemProperties();
 		SpringApplication.run(BackendApplication.class, args);

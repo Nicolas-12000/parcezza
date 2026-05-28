@@ -1,9 +1,6 @@
  # Deployment Diagram (S3 frontend + EC2 backend)
 
  ```plantuml
- @startuml
- !define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/LATEST/AWSPUML
- !includeurl AWSPUML
 
  skinparam componentStyle rectangle
 
@@ -31,6 +28,7 @@
 
  note right of EC2
  - `docker-compose.yml` runs `backend` and `db` on EC2
+ - `deploy.sh` and scripts/ contain helper deployment utilities
  - Frontend is built and deployed to S3 (no container on EC2)
  - Use CloudFront + ACM for HTTPS + CDN (recommended)
  - Consider RDS for managed Postgres in production

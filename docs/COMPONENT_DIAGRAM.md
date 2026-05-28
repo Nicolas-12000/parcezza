@@ -156,6 +156,13 @@ package "Backend (Spring Boot)" {
   }
 }
 
+  package "Infra / Deploy" {
+    [docker-compose.yml]
+    [deploy.sh]
+    [scripts/]
+    [README.md]
+  }
+
 ' Feature -> client service usage
 [home] --> [services/catalog.service]
 [catalog] --> [services/catalog.service]

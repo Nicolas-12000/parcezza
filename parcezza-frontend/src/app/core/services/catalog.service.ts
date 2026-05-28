@@ -10,6 +10,8 @@ import { PageResponse } from '../models/page.model';
   providedIn: 'root'
 })
 export class CatalogService {
+  // Servicio para consultar productos y catálogos desde la API
+  // Operaciones: listar, obtener por id y gestión de catálogos
   private readonly productsUrl = `${environment.apiUrl}/products`;
   private readonly catalogsUrl = `${environment.apiUrl}/catalogs`;
 

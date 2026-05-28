@@ -9,6 +9,8 @@ import { CartResponse, CartItemRequest } from '../models/cart.model';
   providedIn: 'root'
 })
 export class CartService {
+  // Servicio del carrito: mantiene estado local y sincroniza con la API
+  // Métodos para añadir/actualizar/eliminar items y controlar la UI
   private readonly apiUrl = `${environment.apiUrl}/cart`;
   private isBrowser: boolean;
 

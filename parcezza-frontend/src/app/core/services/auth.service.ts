@@ -16,6 +16,8 @@ const ACCESS_TOKEN_PERSIST_KEY = 'access_token_persist';
   providedIn: 'root'
 })
 export class AuthService {
+  // Servicio de autenticación: login, registro y manejo del token
+  // Comentarios simples en español para facilitar lectura
   private readonly apiUrl = `${environment.apiUrl}/auth`;
   private isBrowser: boolean;
   

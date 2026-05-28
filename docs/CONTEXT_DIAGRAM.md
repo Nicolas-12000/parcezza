@@ -7,7 +7,6 @@ skinparam componentStyle rectangle
 actor "Cliente" as Cliente
 actor "Administrador" as Admin
 actor "Vendedor" as Seller
-actor "Repartidor" as Courier
 
 rectangle "Parcezza Platform" as System {
   [Frontend Web (Angular)] as FE
@@ -18,7 +17,6 @@ rectangle "Parcezza Platform" as System {
 Cliente --> FE : Navegador
 Admin --> FE : Navegador
 Seller --> FE : Navegador
-Courier --> FE : Navegador
 
 FE --> BE : HTTPS/JSON
 BE --> DB : JDBC
