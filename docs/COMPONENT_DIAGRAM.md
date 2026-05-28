@@ -1,204 +1,356 @@
-# Vista de Desarrollo (Componentes y carpetas)
+# Vista de Desarrollo (Diagrama de desarrollo detallado)
 
 ```plantuml
 @startuml
-skinparam componentStyle rectangle
+title Vista de Desarrollo — Frontend + Backend (dominios, controllers, services, repositorios)
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
 
+' ---------------------- Frontend (resumen) ----------------------
 package "Frontend (Angular)" {
-  package "app" {
-    [app.ts]
-    [app.html]
-    [app.scss]
-    [app.routes.ts]
-    [app.routes.server.ts]
-    [app.config.ts]
-    [app.config.server.ts]
-  }
+  [AppModule]
+  [AppComponent]
+  [HomeComponent]
+  [CatalogComponent]
+  [ProductDetailComponent]
+  [CartComponent]
+  [CheckoutComponent]
 
-  package "entrypoints" {
-    [main.ts]
-    [main.server.ts]
-    [server.ts]
-    [index.html]
-    [styles.scss]
-    [environments/environment.ts]
-  }
-
-  package "features" {
-    [home]
-    [catalog]
-    [product-detail]
-    [checkout]
-    [order-detail]
-    [profile]
-    [auth/login]
-    [auth/register]
-    [admin-returns]
-    [admin-shipments]
-  }
-
-  package "core" {
-    [guards/auth.guard]
-    [interceptors/auth.interceptor]
-    [services/auth.service]
-    [services/cart.service]
-    [services/catalog.service]
-    [services/order.service]
-    [services/payment.service]
-    [services/profile.service]
-    [services/shipment.service]
-    [services/return.service]
-    [services/toast.service]
-    [models/*]
-  }
-
-  package "shared" {
-    [components/empty-state]
-    [components/skeleton-card]
-    [components/toast]
-    [validators/security.validators]
-  }
+  [AuthService (FE)] <<service>>
+  [CatalogService (FE)] <<service>>
+  [CartService (FE)] <<service>>
+  [OrderService (FE)] <<service>>
+  [ProfileService (FE)] <<service>>
 }
 
+' FE components call backend controllers via REST
+AppComponent --> [AuthService (FE)]
+AppComponent --> [CatalogService (FE)]
+AppComponent --> [CartService (FE)]
+[CatalogComponent] --> [CatalogService (FE)]
+[ProductDetailComponent] --> [CatalogService (FE)]
+[CheckoutComponent] --> [OrderService (FE)]
+[CartComponent] --> [CartService (FE)]
+
+[AuthService (FE)] ..> AuthController : REST
+[CatalogService (FE)] ..> CatalogController : REST
+[CartService (FE)] ..> CartController : REST
+[OrderService (FE)] ..> OrderController : REST
+
+' ---------------------- Backend (detallado) ----------------------
 package "Backend (Spring Boot)" {
-  package "app" {
-    [BackendApplication]
+
+  package "domain" {
+    class Auditable {
+      - createdAt: Instant
+      - updatedAt: Instant
+    }
+
+    class User {
+      + id: Long
+      + email: String
+      + password: String
+      + roles: Set<Role>
+    }
+
+    class Role { + id: Long
+      + name: String }
+
+    class Address { + id: Long
+      + street: String
+      + city: String
+      + zip: String
+      + country: String }
+
+    class Seller { + id: Long
+      + name: String
+      + ownerId: Long }
+
+    class Product { + id: Long
+      + sku: String
+      + name: String
+      + description: String
+      + price: BigDecimal }
+
+    class ProductVariant { + id: Long
+      + sku: String
+      + price: BigDecimal
+      + stock: Integer }
+
+    class VariantAttribute { + name: String
+      + value: String }
+
+    class Catalog { + id: Long
+      + name: String }
+
+    class Cart { + id: Long
+      + userId: Long
+      + total: BigDecimal }
+
+    class CartItem { + id: Long
+      + variantId: Long
+      + quantity: Integer }
+
+    class Order { + id: Long
+      + userId: Long
+      + status: OrderStatus
+      + total: BigDecimal
+      + createdAt: Instant }
+
+    class OrderItem { + id: Long
+      + variantId: Long
+      + quantity: Integer
+      + price: BigDecimal }
+
+    class Payment { + id: Long
+      + orderId: Long
+      + status: PaymentStatus
+      + amount: BigDecimal }
+
+    class Shipment { + id: Long
+      + orderId: Long
+      + trackingNumber: String
+      + status: ShipmentStatus }
+
+    class InventoryMovement { + id: Long
+      + variantId: Long
+      + quantity: Integer
+      + type: InventoryMovementType }
+
+    class ReturnRequest { + id: Long
+      + orderId: Long
+      + reason: String
+      + status: ReturnStatus }
+
+    Auditable <|-- User
+    Auditable <|-- Product
+    Product "1" -- "*" ProductVariant : has
+    ProductVariant "1" -- "*" VariantAttribute : attributes
+    Catalog "1" -- "*" Product : contains
+    User "1" -- "*" Address
+    User "1" -- "0..1" Cart
+    Cart "1" -- "*" CartItem
+    Order "1" -- "*" OrderItem
+    Order "1" -- "0..1" Payment
+    Order "1" -- "0..1" Shipment
   }
 
-  package "config" {
-    [DataLoader]
-    [SecurityConfig]
-    [JpaConfig]
+  enum OrderStatus { PENDING
+    CONFIRMED
+    SHIPPED
+    CANCELLED
+    COMPLETED }
+
+  enum PaymentStatus { PENDING
+    CONFIRMED
+    FAILED }
+
+  enum ShipmentStatus { PENDING
+    IN_TRANSIT
+    DELIVERED
+    CANCELLED }
+
+  enum InventoryMovementType { IN
+    OUT
+    RESERVE
+    RELEASE }
+
+  enum ReturnStatus { REQUESTED
+    APPROVED
+    REJECTED
+    COMPLETED }
+
+  package "repository" {
+    interface UserRepository <<Repository>>
+    interface RoleRepository <<Repository>>
+    interface ProductRepository <<Repository>>
+    interface ProductVariantRepository <<Repository>>
+    interface CatalogRepository <<Repository>>
+    interface CartRepository <<Repository>>
+    interface CartItemRepository <<Repository>>
+    interface OrderRepository <<Repository>>
+    interface OrderItemRepository <<Repository>>
+    interface PaymentRepository <<Repository>>
+    interface ShipmentRepository <<Repository>>
+    interface InventoryMovementRepository <<Repository>>
+    interface ReturnRequestRepository <<Repository>>
   }
 
-  package "controller" {
-    [AuthController]
-    [ProductController]
-    [ProductVariantController]
-    [SellerController]
-    [CatalogController]
-    [ProfileController]
-    [CartController]
-    [OrderController]
-    [PaymentController]
-    [ShipmentController]
-    [ReturnController]
+  package "dto" {
+    class UserDTO <<DTO>>
+    class ProductDTO <<DTO>>
+    class CatalogDTO <<DTO>>
+    class CartDTO <<DTO>>
+    class OrderDTO <<DTO>>
+    class PaymentDTO <<DTO>>
+  }
+
+  package "mapper" {
+    interface ProductMapper <<Mapper>>
+    interface OrderMapper <<Mapper>>
+    interface UserMapper <<Mapper>>
   }
 
   package "service" {
-    [AuthService]
-    [ProductService]
-    [ProductVariantService]
-    [SellerService]
-    [CatalogService]
-    [ProfileService]
-    [CartService]
-    [OrderService]
-    [PaymentService]
-    [ShipmentService]
-    [ReturnService]
-    [InventoryService]
+    class AuthService <<Service>> {
+      + register(dto)
+      + login(dto)
+      + refreshToken()
+    }
+
+    class UserService <<Service>> {
+      + findById(id)
+      + updateProfile(id, dto)
+    }
+
+    class ProductService <<Service>> {
+      + list(params)
+      + findById(id)
+      + create(dto)
+      + update(id, dto)
+    }
+
+    class CatalogService <<Service>> {
+      + getCatalog(id)
+      + search(query)
+    }
+
+    class CartService <<Service>> {
+      + getCart(userId)
+      + addItem(userId, variantId, qty)
+      + removeItem(userId, itemId)
+    }
+
+    class OrderService <<Service>> {
+      + checkout(cart)
+      + getOrders(userId)
+      + cancel(orderId)
+    }
+
+    class PaymentService <<Service>> {
+      + confirmPayment(orderId, paymentInfo)
+    }
+
+    class ShipmentService <<Service>> {
+      + createShipment(orderId)
+      + updateStatus(id, status)
+    }
+
+    class ReturnService <<Service>> {
+      + requestReturn(orderId, reason)
+      + processReturn(id)
+    }
+
+    class InventoryService <<Service>> {
+      + reserveStock(variantId, qty)
+      + releaseStock(variantId, qty)
+    }
   }
 
-  package "repository" {
-    [UserRepository]
-    [RoleRepository]
-    [SellerRepository]
-    [ProductRepository]
-    [ProductVariantRepository]
-    [VariantAttributeRepository]
-    [CatalogRepository]
-    [AddressRepository]
-    [CartRepository]
-    [CartItemRepository]
-    [OrderRepository]
-    [OrderItemRepository]
-    [PaymentRepository]
-    [ShipmentRepository]
-    [InventoryMovementRepository]
-    [ReturnRequestRepository]
-  }
+  package "controller" {
+    class AuthController <<Controller>> {
+      + POST /api/auth/register
+      + POST /api/auth/login
+    }
 
-  package "exception" {
-    [ErrorResponse]
-    [GlobalExceptionHandler]
-    [BadRequestException]
-    [UnauthorizedException]
-    [ResourceNotFoundException]
-    [DuplicateResourceException]
-  }
+    class ProductController <<Controller>> {
+      + GET /api/products
+      + GET /api/products/{id}
+      + POST /api/products
+      + PUT /api/products/{id}
+    }
 
-  package "domain" {
-    [User]
-    [Role]
-    [Address]
-    [Seller]
-    [Product]
-    [ProductVariant]
-    [VariantAttribute]
-    [Catalog]
-    [Cart]
-    [CartItem]
-    [Order]
-    [OrderItem]
-    [Payment]
-    [Shipment]
-    [InventoryMovement]
-    [ReturnRequest]
-    [Auditable]
+    class CatalogController <<Controller>> {
+      + GET /api/catalogs
+    }
+
+    class CartController <<Controller>> {
+      + GET /api/cart
+      + POST /api/cart/items
+      + DELETE /api/cart/items/{id}
+    }
+
+    class OrderController <<Controller>> {
+      + POST /api/orders/checkout
+      + GET /api/orders
+      + POST /api/orders/{id}/cancel
+    }
+
+    class PaymentController <<Controller>> {
+      + POST /api/payments/confirm
+    }
+
+    class ShipmentController <<Controller>> {
+      + GET /api/shipments
+      + POST /api/shipments/{id}/status
+    }
+
+    class ReturnController <<Controller>> {
+      + POST /api/returns
+      + GET /api/returns
+    }
+
+    class ProfileController <<Controller>> {
+      + GET /api/me
+      + PUT /api/me
+    }
   }
 
   package "security" {
-    [JwtAuthenticationFilter]
-    [JwtService]
-    [UserDetailsService]
-    [CurrentUserService]
+    class JwtService
+    class JwtAuthenticationFilter <<Filter>>
+    class UserDetailsServiceImpl <<Service>>
+    class SecurityConfig <<Config>>
   }
+
+  package "config" {
+    class JpaConfig
+    class DataLoader
+  }
+
+  package "exception" {
+    class GlobalExceptionHandler <<ControllerAdvice>>
+    class ResourceNotFoundException <<Exception>>
+    class BadRequestException <<Exception>>
+    class DuplicateResourceException <<Exception>>
+  }
+
+  ' ---------------------- Wiring ----------------------
+  AuthController --> AuthService
+  ProductController --> ProductService
+  CatalogController --> CatalogService
+  CartController --> CartService
+  OrderController --> OrderService
+  PaymentController --> PaymentService
+  ShipmentController --> ShipmentService
+  ReturnController --> ReturnService
+  ProfileController --> UserService
+
+  AuthService --> UserRepository
+  ProductService --> ProductRepository
+  CatalogService --> CatalogRepository
+  CartService --> CartRepository
+  OrderService --> OrderRepository
+  PaymentService --> PaymentRepository
+  ShipmentService --> ShipmentRepository
+  ReturnService --> ReturnRequestRepository
+  InventoryService --> InventoryMovementRepository
+
+  ProductMapper ..> ProductDTO
+  OrderMapper ..> OrderDTO
+  UserMapper ..> UserDTO
+
+  JwtAuthenticationFilter ..> JwtService
+  UserDetailsServiceImpl ..> UserRepository
+
 }
-
-  package "Infra / Deploy" {
-    [docker-compose.yml]
-    [deploy.sh]
-    [scripts/]
-    [README.md]
-  }
-
-' Feature -> client service usage
-[home] --> [services/catalog.service]
-[catalog] --> [services/catalog.service]
-[product-detail] --> [services/catalog.service]
-[checkout] --> [services/order.service]
-[checkout] --> [services/payment.service]
-[order-detail] --> [services/order.service]
-[profile] --> [services/profile.service]
-[auth/login] --> [services/auth.service]
-[auth/register] --> [services/auth.service]
-[admin-returns] --> [services/return.service]
-[admin-shipments] --> [services/shipment.service]
-
-' Client services -> backend controllers
-[services/auth.service] --> [AuthController]
-[services/cart.service] --> [CartController]
-[services/catalog.service] --> [CatalogController]
-[services/order.service] --> [OrderController]
-[services/payment.service] --> [PaymentController]
-[services/profile.service] --> [ProfileController]
-[services/shipment.service] --> [ShipmentController]
-[services/return.service] --> [ReturnController]
-
-' Backend internal wiring (high level)
-[OrderController] --> [OrderService]
-[OrderService] --> [OrderRepository]
-[PaymentController] --> [PaymentService]
-[PaymentService] --> [PaymentRepository]
-[ShipmentController] --> [ShipmentService]
-[ShipmentService] --> [ShipmentRepository]
-[ReturnController] --> [ReturnService]
-[ReturnService] --> [ReturnRequestRepository]
 
 @enduml
 ```
 
 Notes:
-- Esta vista sigue la estructura de carpetas y paquetes del codigo.
-- Incluye frontend y backend para reflejar el flujo completo de componentes.
+- Esta vista contiene paquetes y clases relevantes para un diagrama de desarrollo: entidades (domain), repositorios, servicios, controladores, DTOs, mappers y elementos de seguridad.
+- He omitido archivos de despliegue/infra (scripts, docker-compose) y elementos de CI/CD ya que no aportan a la vista de desarrollo.
+- Si quieres, reduzco el nivel de detalle para generar un `docs/CLASS_DIAGRAM.md` exclusivamente con las entidades del dominio.
